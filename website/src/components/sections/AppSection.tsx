@@ -199,12 +199,12 @@ export function AppSection() {
 
               <div className="mt-6">
                 <a
-                  href="/Sahayak-Release-v1.0.apk"
-                  download="Sahayak-Release-v1.0.apk"
+                  href="/PulseEdge-OS.apk"
+                  download="PulseEdge-OS.apk"
                   className="inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3.5 text-sm font-black text-white hover:from-sky-600 hover:to-cyan-600 hover:shadow-lg hover:shadow-sky-500/25 transition-all shadow-md"
                 >
                   <Download className="h-4 w-4" />
-                  Download Sahayak APK (v1.0)
+                  Download PulseEdge OS APK
                 </a>
                 <p className="mt-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
                   <Smartphone className="h-4 w-4" />

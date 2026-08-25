@@ -51,12 +51,12 @@ export function Hero() {
           {/* Action CTAs */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <a
-              href="/Sahayak-Release-v1.0.apk"
-              download="Sahayak-Release-v1.0.apk"
+              href="/PulseEdge-OS.apk"
+              download="PulseEdge-OS.apk"
               className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-sky-500 via-cyan-500 to-sky-600 px-7 py-3.5 text-sm font-black text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/35 hover:scale-[1.02] transition-all"
             >
               <Download className="h-4 w-4" />
-              Download Sahayak APK (v1.0)
+              Download PulseEdge OS APK
             </a>
             <a
               href="#simulator"

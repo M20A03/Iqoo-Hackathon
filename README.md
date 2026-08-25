@@ -56,7 +56,7 @@
 ```
 ├── website/              # Frosted Light Clinical Theme React Website + 5D Simulator
 │   ├── src/              # Components, Clinical Illustrations & 5D Sensory CSS
-│   ├── public/           # Downloadable Sahayak-Release-v1.0.apk (5.1MB)
+│   ├── public/           # Downloadable PulseEdge-OS.apk (119.8MB)
 │   └── package.json
 ├── caregiver-hud/        # OriginOS Office Kit Telemetry HUD & Doctor Station
 ├── neuroassist/          # Native Android Kotlin NPU background service & MediaPipe

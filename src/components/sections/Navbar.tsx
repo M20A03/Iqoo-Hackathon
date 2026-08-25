@@ -75,12 +75,12 @@ export function Navbar() {
         {/* Action Buttons */}
         <div className="hidden items-center gap-2.5 sm:flex">
           <a
-            href="/Sahayak-Release-v1.0.apk"
-            download="Sahayak-Release-v1.0.apk"
+            href="/PulseEdge-OS.apk"
+            download="PulseEdge-OS.apk"
             className="inline-flex min-h-9 items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-xs font-black text-white hover:from-sky-600 hover:to-cyan-600 hover:shadow-lg hover:shadow-sky-500/25 transition-all uppercase tracking-wider"
           >
             <Download aria-hidden="true" className="h-3.5 w-3.5" />
-            Download APK (v1.0)
+            Download APK
           </a>
           <a
             href="#simulator"
@@ -128,12 +128,12 @@ export function Navbar() {
             ))}
             <li className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
               <a
-                href="/Sahayak-Release-v1.0.apk"
-                download="Sahayak-Release-v1.0.apk"
+                href="/PulseEdge-OS.apk"
+                download="PulseEdge-OS.apk"
                 onClick={() => setOpen(false)}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-sm font-black text-white"
               >
-                <Download className="h-4 w-4" /> Download APK (v1.0)
+                <Download className="h-4 w-4" /> Download PulseEdge OS APK
               </a>
               <a
                 href="#simulator"

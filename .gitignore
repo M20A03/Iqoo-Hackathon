@@ -49,6 +49,7 @@ lerna-debug.log*
 .gradle/
 .gradle_home/
 **/build/
+*.apk
 *.apk.idsig
 local.properties
 .cxx/
