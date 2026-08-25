@@ -3,10 +3,11 @@ import Tesseract from 'tesseract.js';
 import { checkMedicationSafety } from '../utils/safetyEngine';
 import { Pill, ShieldAlert, Volume2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { SUPPORTED_INDIAN_LANGUAGES, SupportedLangCode, MULTILINGUAL_DRUG_DATABASE } from '../utils/languageDict';
 
 interface OCRComponentProps {
   onTextExtracted: (text: string) => void;
-  speakText: (text: string) => void;
+  speakText: (text: string, lang?: SupportedLangCode) => void;
 }
 
 const JAN_AUSHADHI_MEDS = [
@@ -17,9 +18,6 @@ const JAN_AUSHADHI_MEDS = [
     brandedPrice: 204.5,
     janAushadhiPrice: 32.0,
     indication: 'Broad Spectrum Bacterial Respiratory Infection',
-    hindiVoice: 'ऑगमेंटिन 625 के बदले जन औषधि एमोक्सिसिलिन केवल बत्तीस रुपये में उपलब्ध है। चौरासी प्रतिशत की बचत।',
-    kannadaVoice: 'ಆಗ್ಮೆಂಟಿನ್ 625 ಬದಲಿಗೆ ಜನ ಔಷಧಿ ಅಮೋಕ್ಸಿಸಿಲಿನ್ ಕೇವಲ ಮೂವತ್ತೆರಡು ರೂಪಾಯಿ. ಎಂಬತ್ನಾಲ್ಕು ಶೇಕಡಾ ಉಳಿತಾಯ.',
-    englishVoice: 'Augmentin 625 generic equivalent Amoxicillin with Clavulanic Acid is available at Jan Aushadhi for Rs 32, saving 84%.',
   },
   {
     id: 'lipitor',
@@ -28,9 +26,6 @@ const JAN_AUSHADHI_MEDS = [
     brandedPrice: 245.0,
     janAushadhiPrice: 38.0,
     indication: 'Cholesterol & Cardiovascular Plaque Reduction',
-    hindiVoice: 'एटोरवास्टेटिन बीस मिलीग्राम जन औषधि केंद्र पर अड़तीस रुपये में उपलब्ध है। पिचासी प्रतिशत बचत।',
-    kannadaVoice: 'ಅಟೋರ್ವಾಸ್ಟಾಟಿನ್ ಇಪ್ಪತ್ತು ಮಿಲಿಗ್ರಾಂ ಜನ ಔಷಧಿ ಕೇಂದ್ರದಲ್ಲಿ ಮೂವತ್ತೆಂಟು ರೂಪಾಯಿಗೆ ಲಭ್ಯವಿದೆ.',
-    englishVoice: 'Lipitor generic equivalent Atorvastatin 20mg available at Jan Aushadhi for Rs 38, saving 84.5%.',
   },
   {
     id: 'glycomet',
@@ -39,9 +34,6 @@ const JAN_AUSHADHI_MEDS = [
     brandedPrice: 62.0,
     janAushadhiPrice: 9.5,
     indication: 'Type 2 Diabetes Mellitus Glycemic Control',
-    hindiVoice: 'मेटफॉर्मिन पांच सौ मिलीग्राम जन औषधि पर केवल नौ रुपये पचास पैसे में उपलब्ध है।',
-    kannadaVoice: 'ಮೆಟ್‌ಫಾರ್ಮಿನ್ ಐನೂರು ಮಿಲಿಗ್ರಾಂ ಕೇವಲ ಒಂಬತ್ತು ರೂಪಾಯಿ ಐವತ್ತು ಪೈಸೆ.',
-    englishVoice: 'Glycomet generic Metformin 500mg is available at Jan Aushadhi for Rs 9.50, saving 85%.',
   }
 ];
 
@@ -52,7 +44,7 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
   const [safetyAlert, setSafetyAlert] = useState<string | null>(null);
   const [matchedDrug, setMatchedDrug] = useState<typeof JAN_AUSHADHI_MEDS[0] | null>(JAN_AUSHADHI_MEDS[0]);
   const [supplyMonths, setSupplyMonths] = useState(1);
-  const [selectedLang, setSelectedLang] = useState<'en' | 'hi' | 'kn'>('en');
+  const [selectedLang, setSelectedLang] = useState<SupportedLangCode>('en');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Pre-process image on HTML canvas to boost OCR accuracy for medicine strips & labels
@@ -124,7 +116,7 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
         if (!safety.isSafe) {
           const mainAlert = safety.hindiWarning || safety.warning || '';
           setSafetyAlert(mainAlert);
-          speakText(mainAlert);
+          speakText(mainAlert, selectedLang);
           setStatus('🚨 CDSCO CONTRAINDICATION ALERT!');
         } else {
           setSafetyAlert(null);
@@ -133,7 +125,7 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
           const match = JAN_AUSHADHI_MEDS.find(m => lower.includes(m.id) || lower.includes(m.brandedName.toLowerCase())) || JAN_AUSHADHI_MEDS[0];
           setMatchedDrug(match);
           setStatus('✅ Jan Aushadhi Generic Match Found!');
-          playVoiceForDrug(match, selectedLang);
+          playVoiceForDrug(match.id, selectedLang);
           confetti({ particleCount: 25, spread: 50, origin: { y: 0.7 } });
         }
       } else {
@@ -155,11 +147,10 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
     }
   };
 
-  const playVoiceForDrug = (drug: typeof JAN_AUSHADHI_MEDS[0], lang: 'en' | 'hi' | 'kn') => {
-    let msg = drug.englishVoice;
-    if (lang === 'hi') msg = drug.hindiVoice;
-    if (lang === 'kn') msg = drug.kannadaVoice;
-    speakText(msg);
+  const playVoiceForDrug = (drugId: string, lang: SupportedLangCode) => {
+    const drugData = MULTILINGUAL_DRUG_DATABASE[drugId] || MULTILINGUAL_DRUG_DATABASE['augmentin'];
+    const text = drugData.genericVoice[lang] || drugData.genericVoice['en'];
+    speakText(text, lang);
   };
 
   return (
@@ -175,7 +166,7 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
               Jan Aushadhi Generic Scanner
             </h3>
             <p className="text-xs font-bold text-sky-700">
-              Offline OCR • Up to 85% Savings
+              Offline OCR • 10 Indian Regional Languages
             </p>
           </div>
         </div>
@@ -220,35 +211,37 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
       {/* Jan Aushadhi Generic Savings Card */}
       {matchedDrug && !safetyAlert && (
         <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-800">
-              Active Salt Chemical Mapping
+              Select Spoken Language (10 Indian Languages):
             </span>
-            <div className="flex items-center gap-1">
-              {(['en', 'hi', 'kn'] as const).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => {
-                    setSelectedLang(lang);
-                    playVoiceForDrug(matchedDrug, lang);
-                  }}
-                  className={`px-2 py-0.5 text-[10px] font-bold rounded-md uppercase transition-all ${
-                    selectedLang === lang
-                      ? 'bg-sky-600 text-white'
-                      : 'bg-white text-slate-600 border border-slate-200'
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
+            <button
+              onClick={() => playVoiceForDrug(matchedDrug.id, selectedLang)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-slate-200 text-sky-700 text-xs font-black hover:bg-sky-50 shadow-sm self-start"
+            >
+              <Volume2 className="h-3.5 w-3.5 text-sky-600 animate-pulse" />
+              <span>Speak in {SUPPORTED_INDIAN_LANGUAGES[selectedLang].nativeName}</span>
+            </button>
+          </div>
+
+          {/* 10 Language Buttons */}
+          <div className="flex flex-wrap gap-1 bg-white/80 p-1.5 rounded-2xl border border-sky-100 max-h-24 overflow-y-auto">
+            {Object.entries(SUPPORTED_INDIAN_LANGUAGES).map(([code, config]) => (
               <button
-                onClick={() => playVoiceForDrug(matchedDrug, selectedLang)}
-                className="p-1 rounded-md bg-white border border-slate-200 text-sky-600 hover:bg-sky-50 ml-1"
-                title="Speak Audio"
+                key={code}
+                onClick={() => {
+                  setSelectedLang(code as SupportedLangCode);
+                  playVoiceForDrug(matchedDrug.id, code as SupportedLangCode);
+                }}
+                className={`px-2 py-0.5 text-[10px] font-bold rounded-lg uppercase transition-all flex items-center gap-1 ${
+                  selectedLang === code
+                    ? 'bg-sky-600 text-white shadow-sm scale-105'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-sky-50'
+                }`}
               >
-                <Volume2 className="h-3.5 w-3.5" />
+                <span>{config.nativeName}</span>
               </button>
-            </div>
+            ))}
           </div>
 
           <div>

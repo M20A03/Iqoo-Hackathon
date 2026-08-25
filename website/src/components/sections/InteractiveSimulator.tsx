@@ -14,9 +14,11 @@ import {
   FileText,
   Printer,
   Sparkles,
+  Globe,
 } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import confetti from "canvas-confetti";
+import { SUPPORTED_INDIAN_LANGUAGES, SupportedLangCode, MULTILINGUAL_DRUG_DATABASE } from "@/utils/languageDict";
 
 type SimulatorTab = "fft" | "sclera" | "ppg" | "pharma" | "gaze" | "tremor";
 
@@ -42,7 +44,7 @@ export function InteractiveSimulator() {
   // --- 4. Jan Aushadhi & CDSCO State (Sliding Price Calculator Drawer) ---
   const [selectedPharma, setSelectedPharma] = useState<"augmentin" | "lipitor" | "glycomet" | "aspirin_warfarin">("augmentin");
   const [pharmaQty, setPharmaQty] = useState(1);
-  const [pharmaLang, setPharmaLang] = useState<"en" | "hi" | "kn">("en");
+  const [pharmaLang, setPharmaLang] = useState<SupportedLangCode>("en");
 
   // --- 5. Gaze & Micro-Gestures State (360 Dwell Pointer) ---
   const [gazePos, setGazePos] = useState({ x: 50, y: 50 });
@@ -234,27 +236,18 @@ export function InteractiveSimulator() {
   const genericTotal = (currentPharma.genericPrice * pharmaQty).toFixed(2);
   const savingsTotal = (Number(brandTotal) - Number(genericTotal)).toFixed(2);
 
-  // Spoken voice guidance for Jan Aushadhi
-  const speakPharmaGuidance = (lang: "en" | "hi" | "kn") => {
+  // Spoken voice guidance for Jan Aushadhi across 10 Indian languages
+  const speakPharmaGuidance = (lang: SupportedLangCode) => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
 
-    let text = "";
-    if (selectedPharma === "aspirin_warfarin") {
-      text = lang === "hi"
-        ? "चेतावनी! एस्पिरिन और वारफारिन एक साथ लेने से आंतरिक रक्तस्राव का गंभीर खतरा है।"
-        : lang === "kn"
-        ? "ಎಚ್ಚರಿಕೆ! ಆಸ್ಪಿರಿನ್ ಮತ್ತು ವಾರ್ಫಾರಿನ್ ಒಟ್ಟಿಗೆ ತೆಗೆದುಕೊಳ್ಳುವುದು ರಕ್ತಸ್ರಾವಕ್ಕೆ ಕಾರಣವಾಗಬಹುದು."
-        : "Warning! Concurrent use of Aspirin and Warfarin poses severe risk of internal hemorrhage.";
-    } else {
-      text = lang === "hi"
-        ? `${currentPharma.brandName} के बदले जन औषधि जेनेरिक उपलब्ध है। कुल बचत ₹${savingsTotal} रुपये।`
-        : lang === "kn"
-        ? `${currentPharma.brandName} ಬದಲಿಗೆ ಜನ ಔಷಧಿ ಲಭ್ಯವಿದೆ. ಒಟ್ಟು ಉಳಿತಾಯ ₹${savingsTotal} ರೂಪಾಯಿ.`
-        : `${currentPharma.brandName} generic equivalent saves ₹${savingsTotal} at Jan Aushadhi.`;
-    }
+    const drugTranslation = MULTILINGUAL_DRUG_DATABASE[selectedPharma] || MULTILINGUAL_DRUG_DATABASE['augmentin'];
+    const text = drugTranslation.genericVoice[lang] || drugTranslation.genericVoice['en'];
 
     const utterance = new SpeechSynthesisUtterance(text);
+    const speechCode = SUPPORTED_INDIAN_LANGUAGES[lang]?.speechCode || 'en-IN';
+    utterance.lang = speechCode;
+    utterance.rate = 0.9;
     window.speechSynthesis.speak(utterance);
   };
 
@@ -295,7 +288,7 @@ export function InteractiveSimulator() {
             { id: "fft", label: "🩺 Acoustic Stethoscope FFT", badge: "Audio" },
             { id: "sclera", label: "👁️ Sclera & Conjunctiva Scan", badge: "Optical" },
             { id: "ppg", label: "💓 Contactless Camera PPG", badge: "Vitals" },
-            { id: "pharma", label: "💊 Jan Aushadhi & CDSCO Shield", badge: "Pharma" },
+            { id: "pharma", label: "💊 Jan Aushadhi (10 Languages)", badge: "Pharma" },
             { id: "gaze", label: "👤 60 FPS Gaze & Breath Puff", badge: "Zero-Touch" },
             { id: "tremor", label: "〰️ Parkinson's Tremor Filter", badge: "Low-Pass" },
           ].map((t) => (
@@ -580,38 +573,42 @@ export function InteractiveSimulator() {
             </div>
           )}
 
-          {/* TAB 4: PHARMA SAVINGS & CDSCO SAFETY SHIELD */}
+          {/* TAB 4: PHARMA SAVINGS & CDSCO SAFETY SHIELD (10 INDIAN LANGUAGES) */}
           {activeTab === "pharma" && (
             <div className="grid gap-8 lg:grid-cols-12 items-center">
               <div className="lg:col-span-7">
                 <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-md space-y-4">
-                  <div className="flex justify-between items-center border-b pb-3 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 text-xs gap-2">
                     <span className="font-mono font-bold text-sky-800">
-                      PRADHAN MANTRI JAN AUSHADHI KENDRA DATABASE
+                      JAN AUSHADHI &bull; 10 REGIONAL INDIAN LANGUAGES
                     </span>
-                    <div className="flex items-center gap-1">
-                      {(["en", "hi", "kn"] as const).map((lang) => (
-                        <button
-                          key={lang}
-                          onClick={() => {
-                            setPharmaLang(lang);
-                            speakPharmaGuidance(lang);
-                          }}
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-all ${
-                            pharmaLang === lang ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {lang}
-                        </button>
-                      ))}
+                    <button
+                      onClick={() => speakPharmaGuidance(pharmaLang)}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 font-bold self-start"
+                    >
+                      <Volume2 className="h-3.5 w-3.5" />
+                      <span>Speak in {SUPPORTED_INDIAN_LANGUAGES[pharmaLang].nativeName}</span>
+                    </button>
+                  </div>
+
+                  {/* 10 Language Selectors */}
+                  <div className="flex flex-wrap gap-1 bg-slate-50 p-2 rounded-2xl border border-slate-200">
+                    {Object.entries(SUPPORTED_INDIAN_LANGUAGES).map(([code, config]) => (
                       <button
-                        onClick={() => speakPharmaGuidance(pharmaLang)}
-                        className="p-1 rounded bg-sky-50 text-sky-700 hover:bg-sky-100 ml-1"
-                        title="Read aloud"
+                        key={code}
+                        onClick={() => {
+                          setPharmaLang(code as SupportedLangCode);
+                          speakPharmaGuidance(code as SupportedLangCode);
+                        }}
+                        className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                          pharmaLang === code
+                            ? "bg-sky-600 text-white shadow-sm scale-105"
+                            : "bg-white text-slate-700 hover:bg-sky-50 border border-slate-200"
+                        }`}
                       >
-                        <Volume2 className="h-3.5 w-3.5" />
+                        {config.nativeName}
                       </button>
-                    </div>
+                    ))}
                   </div>
 
                   <div>
@@ -823,7 +820,7 @@ export function InteractiveSimulator() {
                     }
                     setDrawnPoints((prev) => [...prev.slice(-35), { x, y }]);
                   }}
-                  className="relative h-80 rounded-3xl bg-slate-950 p-4 overflow-hidden select-none cursor-pointer border border-slate-800 shadow-xl"
+                  className="relative h-80 rounded-3xl bg-slate-950 p-4 overflow-hidden select-none cursor-crosshair border border-slate-800 shadow-xl"
                 >
                   <div className="absolute top-4 left-4 z-20 bg-slate-900/90 border border-slate-700 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-md">
                     Mode: {tremorEnabled ? "✅ Low-Pass Tremor Filter ACTIVE (Smooth Stroke)" : "❌ Raw 8Hz Jittery Input (Unfiltered)"}

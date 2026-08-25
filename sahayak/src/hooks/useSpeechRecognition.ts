@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
+import { SUPPORTED_INDIAN_LANGUAGES, SupportedLangCode } from '../utils/languageDict';
 
-export function useSpeechRecognition() {
+export function useSpeechRecognition(langCode: SupportedLangCode = 'en') {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +20,10 @@ export function useSpeechRecognition() {
     const recognition = new SpeechRecognitionAPI();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = 'en-US';
+    
+    // Configure dialect
+    const speechLang = SUPPORTED_INDIAN_LANGUAGES[langCode]?.speechCode || 'en-IN';
+    recognition.lang = speechLang;
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -42,7 +46,7 @@ export function useSpeechRecognition() {
     };
 
     recognition.start();
-  }, [SpeechRecognitionAPI]);
+  }, [SpeechRecognitionAPI, langCode]);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
@@ -51,13 +55,13 @@ export function useSpeechRecognition() {
   return { isListening, transcript, error, startListening, resetTranscript };
 }
 
-export function speakText(text: string) {
+export function speakText(text: string, langCode: SupportedLangCode = 'en') {
   if ('speechSynthesis' in window) {
-    // Stop any ongoing speech
     window.speechSynthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
-    // Adjust speech rate for clarity
+    const speechLang = SUPPORTED_INDIAN_LANGUAGES[langCode]?.speechCode || 'en-IN';
+    utterance.lang = speechLang;
     utterance.rate = 0.9; 
     window.speechSynthesis.speak(utterance);
   }
