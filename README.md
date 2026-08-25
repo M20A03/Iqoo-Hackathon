@@ -1,6 +1,6 @@
 # PulseEdge-OS (Sahayak) — Air-Gapped Medical Diagnostics & Zero-Touch Neuro-Accessibility
 
-[![iQOO Hackathon 2026](https://img.shields.io/badge/iQOO_Hackathon-HealthTech_Track-0ea5e9.svg)](https://settings.aws.com)
+[![iQOO Hackathon 2026](https://img.shields.io/badge/iQOO_Hackathon-HealthTech_Track-0ea5e9.svg)](https://pulse1edge.vercel.app/)
 [![Snapdragon NPU](https://img.shields.io/badge/Snapdragon_NPU-100%25_Offline_Edge_AI-10b981.svg)](https://qualcomm.com)
 [![OriginOS Office Kit](https://img.shields.io/badge/OriginOS-Office_Kit_Multi--Window-6366f1.svg)](https://vivo.com)
 
@@ -75,4 +75,4 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` to experience the **Frosted Light Clinical Theme with 5D Sensory Dynamics & Live Playground**.
+Visit `http://localhost:5173` to experience the **Frosted Light Clinical Theme with 5D Sensory Dynamics & Live Playground**, or access the live deployment at [pulse1edge.vercel.app](https://pulse1edge.vercel.app/).
