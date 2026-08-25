@@ -7,24 +7,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#121412',
-        primary: '#c4f1d5',
-        'on-primary': '#0c3825',
-        'primary-container': '#a8d5ba',
-        'on-primary-container': '#345d48',
-        secondary: '#6bdba2',
-        'secondary-container': '#2ca470',
-        'on-secondary-container': '#00311d',
-        'deep-forest': '#0B301B',
-        'surface-dark': '#16442C',
-        'accent-gold': '#FFB800',
-        'on-surface': '#e2e3df',
-        'on-surface-variant': '#c1c8c1',
-        outline: '#8b938c',
-        'outline-variant': '#414943',
-        // Support original colors mappings so we don't break existing classes
-        accent: '#FFB800',
-        'accent-fg': '#0B301B',
+        primary: {
+          DEFAULT: '#0B301B', // Forest Green
+          light: '#16442C',
+          dark: '#051A0B',
+        },
+        secondary: {
+          DEFAULT: '#FFB800', // Warm Gold
+          hover: '#E5A500',
+        },
+        accent: {
+          DEFAULT: '#2CA470', // Teal
+          soft: 'rgba(44, 164, 112, 0.05)',
+        },
+        background: '#F8F9FA', // Light Grey Background
+        surface: {
+          DEFAULT: '#FFFFFF', // Pure White Surface
+          light: '#F1F3F5',
+          border: '#E9ECEF',
+        },
+        text: {
+          primary: '#1A1A1A', // Deep Charcoal
+          secondary: '#4A4A4A', // Muted Grey
+          muted: '#868E96',
+        },
+        error: '#D94111',
+        success: '#28A745',
       },
       fontFamily: {
         sans: ['Lexend', 'sans-serif'],
@@ -32,23 +40,13 @@ export default {
         display: ['Playfair Display', 'serif'],
         body: ['Lexend', 'sans-serif'],
       },
-      spacing: {
-        gutter: '16px',
-        'margin-mobile': '24px',
-        'margin-desktop': '64px',
-        'touch-target': '64px',
-        'section-gap': '48px',
-        'element-gap': '16px',
-      },
       borderRadius: {
-        sm: '0.25rem',
-        DEFAULT: '0.5rem',
-        md: '0.75rem',
-        lg: '1.0rem',
-        xl: '1.5rem',
+        '2xl': '16px',
+        '3xl': '24px',
       },
-      minHeight: {
-        'touch': '64px',
+      boxShadow: {
+        'soft': '0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 15px -3px rgba(0, 0, 0, 0.02)',
+        'card': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       }
     },
   },

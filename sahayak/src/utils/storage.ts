@@ -38,6 +38,13 @@ export async function saveItem(item: Omit<SavedItem, 'id'>) {
   const store = tx.objectStore('items');
   const id = await store.add(item);
   await tx.done;
+
+  // Super Clipboard: Notify other windows (Caregiver HUD)
+  localStorage.setItem('sahayak_super_clipboard', JSON.stringify({
+    timestamp: Date.now(),
+    lastAction: item.content
+  }));
+
   return id;
 }
 

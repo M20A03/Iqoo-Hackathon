@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import Tesseract from 'tesseract.js';
+import { checkMedicationSafety } from '../utils/safetyEngine';
 
 interface OCRComponentProps {
   onTextExtracted: (text: string) => void;
@@ -10,6 +11,7 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState('');
   const [status, setStatus] = useState('Ready (Offline Tesseract OCR)');
+  const [safetyAlert, setSafetyAlert] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Pre-process image on HTML canvas to boost OCR accuracy for medicine strips & labels
@@ -76,8 +78,21 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
       
       if (extractedText && extractedText.length > 2) {
         onTextExtracted(extractedText);
-        speakText(`Scanned successfully: ${extractedText.substring(0, 60)}...`);
-        setStatus('✅ Scan complete!');
+
+        // --- Sahayak-NeuroEdge: Medication Safety Check ---
+        const safety = await checkMedicationSafety(extractedText);
+        if (!safety.isSafe) {
+          const mainAlert = safety.hindiWarning || safety.warning || '';
+          setSafetyAlert(mainAlert);
+          speakText(mainAlert);
+          setStatus('🚨 SAFETY ALERT!');
+        } else if (safety.medication) {
+          speakText(safety.medication.hindiAlert);
+          setStatus('✅ Med Identified');
+        } else {
+          speakText(`Scanned successfully: ${extractedText.substring(0, 60)}...`);
+          setStatus('✅ Scan complete!');
+        }
       } else {
         // Fallback if no text could be recognized
         const fallbackText = "No clear text found. Try holding the camera closer or improving the lighting.";
@@ -139,6 +154,13 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
       <p className="text-xs text-accent-gold text-center font-bold tracking-wide uppercase mt-1">
         {status}
       </p>
+
+      {safetyAlert && (
+        <div className="mt-2 p-4 bg-red-950/40 border-2 border-red-500 rounded-xl animate-bounce">
+          <p className="text-red-500 font-bold text-sm text-center">⚠️ SAFETY WARNING</p>
+          <p className="text-white text-xs text-center mt-1">{safetyAlert}</p>
+        </div>
+      )}
     </div>
   );
 }

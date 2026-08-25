@@ -1,0 +1,205 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system: Frosted Light Clinical Theme with 5D Sensory Dynamics
+ * Clinical Porcelain, Biometric Cyan (#0ea5e9, #06b6d4), Pulse Violet (#6366f1), Cardiac Crimson (#ef4444)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-bio-cyan: #0ea5e9;
+  --color-bio-teal: #06b6d4;
+  --color-pulse-violet: #6366f1;
+  --color-cardiac-crimson: #ef4444;
+  --color-emerald-clinical: #10b981;
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-serif: "Instrument Serif", "Playfair Display", Georgia, serif;
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+}
+
+:root {
+  --radius: 1.25rem;
+  
+  /* Clinical Porcelain & Biometric Cyan Light Theme */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: rgba(255, 255, 255, 0.82);
+  --card-foreground: #0f172a;
+  --popover: rgba(255, 255, 255, 0.95);
+  --popover-foreground: #0f172a;
+
+  --primary: #0284c7;             /* Bio-Cyan Primary */
+  --primary-foreground: #ffffff;
+
+  --secondary: #f1f5f9;           /* Slate Tint */
+  --secondary-foreground: #1e293b;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  --accent: #0ea5e9;              /* Glowing Cyan */
+  --accent-foreground: #ffffff;
+
+  --border: rgba(226, 232, 240, 0.8);
+  --input: rgba(226, 232, 240, 0.9);
+  --ring: #0ea5e9;
+
+  /* === 5D GLASSMORPHISM & ELEVATION TOKENS === */
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.92);
+  --glass-shadow: 0 20px 40px -15px rgba(14, 165, 233, 0.08), 
+                  0 0 1px 1px rgba(255, 255, 255, 0.9) inset;
+  --spring-easing: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --smooth-easing: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark {
+  --background: #090d16;
+  --foreground: #f8fafc;
+  --card: rgba(15, 23, 42, 0.75);
+  --card-foreground: #f8fafc;
+  --primary: #38bdf8;
+  --primary-foreground: #090d16;
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #38bdf8;
+  --accent-foreground: #090d16;
+  --border: rgba(51, 65, 85, 0.6);
+  --glass-bg: rgba(15, 23, 42, 0.75);
+  --glass-border: rgba(56, 189, 248, 0.2);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 45%, #e2e8f0 100%);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+}
+
+/* === 5D FROSTED CLINICAL GLASS PANEL === */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 1.5rem;
+  transition: transform 0.4s var(--spring-easing), 
+              box-shadow 0.4s var(--smooth-easing), 
+              border-color 0.3s ease;
+}
+
+.glass-panel:hover {
+  transform: translateY(-4px) scale(1.01) perspective(1000px) rotateX(1deg);
+  box-shadow: 0 25px 50px -12px rgba(14, 165, 233, 0.18), 
+              0 0 20px rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.45);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 20px -2px rgba(14, 165, 233, 0.08), inset 0 1px 1px rgba(255, 255, 255, 1);
+}
+
+/* === 5D SENSORY PULSE & WAVEFORM KEYFRAMES === */
+
+/* 1. Cardiac Pulse Ring */
+@keyframes cardiacPulse {
+  0% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }
+  50% { transform: scale(1.03); box-shadow: 0 0 0 14px rgba(14, 165, 233, 0); }
+  100% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+}
+.animate-cardiac {
+  animation: cardiacPulse 1.8s infinite var(--spring-easing);
+}
+
+/* 2. Audio Stethoscope Spectrogram Fluctuations */
+@keyframes waveOscillate {
+  0%, 100% { height: 16%; opacity: 0.55; }
+  50% { height: 95%; opacity: 1; filter: drop-shadow(0 0 6px #0ea5e9); }
+}
+.bar-1 { animation: waveOscillate 1.2s infinite ease-in-out 0.1s; }
+.bar-2 { animation: waveOscillate 0.8s infinite ease-in-out 0.3s; }
+.bar-3 { animation: waveOscillate 1.4s infinite ease-in-out 0.2s; }
+.bar-4 { animation: waveOscillate 0.9s infinite ease-in-out 0.4s; }
+.bar-5 { animation: waveOscillate 1.1s infinite ease-in-out 0.5s; }
+.bar-6 { animation: waveOscillate 1.3s infinite ease-in-out 0.15s; }
+
+/* 3. Gaze Dwell Ring Completion */
+@keyframes dwellProgress {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+.animate-dwell {
+  stroke-dasharray: 100;
+  animation: dwellProgress 1.2s linear forwards;
+}
+
+/* 4. Ambient Specular Shimmer */
+@keyframes specularFlow {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-badge {
+  background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 50%, #f1f5f9 100%);
+  background-size: 200% 100%;
+  animation: specularFlow 3s infinite linear;
+}
+
+/* Focus Rings with Glowing Bio-Cyan Halo */
+:focus-visible {
+  outline: 3px solid #0ea5e9;
+  outline-offset: 3px;
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.4);
+}
+
+/* Subtle Grid Background */
+.bg-clinical-grid {
+  background-image: 
+    linear-gradient(to right, rgba(14, 165, 233, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}

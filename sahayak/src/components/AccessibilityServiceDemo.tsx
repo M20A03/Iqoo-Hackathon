@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Smartphone, ShieldAlert, CheckCircle, Terminal, Loader } from 'lucide-react';
 import { mockAccessibilityServiceStatus, toggleAccessibilityService } from '../utils/accessibility';
 import { AIResponse } from '../utils/localAI';
-import { saveItem } from '../utils/storage';
 
 interface AccessibilityServiceDemoProps {
   latestCommand?: AIResponse | null;
-  onLogSave?: () => void;
 }
 
-export function AccessibilityServiceDemo({ latestCommand, onLogSave }: AccessibilityServiceDemoProps) {
+export function AccessibilityServiceDemo({ latestCommand }: AccessibilityServiceDemoProps) {
   const [isEnabled, setIsEnabled] = useState(mockAccessibilityServiceStatus());
   const [logs, setLogs] = useState<string[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -31,28 +29,23 @@ export function AccessibilityServiceDemo({ latestCommand, onLogSave }: Accessibi
     }
   }, [latestCommand, isEnabled]);
 
+  const executionId = useRef(0);
+
   const executeSimulatedLogs = async (commandLogs: string[]) => {
+    const id = ++executionId.current;
     setIsExecuting(true);
     setLogs([]); // Clear previous specific execution
     
     for (let i = 0; i < commandLogs.length; i++) {
+      if (id !== executionId.current) return; // Abort if a new command started
       setLogs(prev => [...prev, `> ${commandLogs[i]}`]);
       // Simulate delay between accessibility node traversals/actions
       await new Promise(r => setTimeout(r, 600)); 
     }
     
+    if (id !== executionId.current) return;
     setLogs(prev => [...prev, '> ✅ Execution Complete.']);
     setIsExecuting(false);
-    
-    // Save to offline storage automatically
-    if (latestCommand?.response) {
-      await saveItem({
-        type: 'command',
-        content: `Executed: "${latestCommand.command.text || ''}" -> "${latestCommand.response}"`,
-        timestamp: Date.now()
-      });
-      if (onLogSave) onLogSave();
-    }
   };
 
   return (

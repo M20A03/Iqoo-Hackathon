@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Accessibility Service configuration for NeuroAssist-Edge.
+     This grants the service permission to observe and interact with ALL apps on the device,
+     enabling true hands-free universal app control via gaze, blink, and voice commands. -->
+<accessibility-service
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/accessibility_service_description"
+    android:accessibilityEventTypes="typeAllMask"
+    android:accessibilityFlags="flagDefault|flagIncludeNotImportantViews|flagRequestTouchExplorationMode|flagReportViewIds"
+    android:accessibilityFeedbackType="feedbackGeneric|feedbackSpoken|feedbackHaptic"
+    android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
+    android:canTakeScreenshot="true"
+    android:notificationTimeout="100"
+    android:settingsActivity="com.neuroassist.edge.MainActivity" />

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ═══ PERMISSIONS ═══ -->
+    <!-- Front Camera: Gaze tracking, face mesh, blink detection -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Microphone: Voice commands (offline SpeechRecognizer) + Breath/puff detection -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Flashlight: Rear camera PPG (consistent illumination for heart rate) -->
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <!-- Vibration: Haptic feedback for gaze dwell-click confirmation -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Phone calls: Emergency SOS dialing -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- Network: Local WebSocket server for caregiver HUD (no internet needed) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- System alert window: Floating gaze cursor overlay -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Foreground service: Keep tracking alive -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+
+    <!-- Hardware features (optional - don't block install if missing) -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:label="PulseEdge OS"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.NeuroAssist"
+        tools:targetApi="35">
+
+        <!-- ═══ MAIN ACTIVITY ═══ -->
+        <activity
+            android:name=".MainActivity"
+            android:label="PulseEdge OS"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ═══ ACCESSIBILITY SERVICE ═══ -->
+        <!-- This is the REAL AccessibilityService that can control other apps -->
+        <service
+            android:name=".NeuroAccessibilityService"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+    </application>
+
+</manifest>

@@ -13,6 +13,9 @@ export function useSpeechRecognition() {
       return;
     }
 
+    setTranscript('');
+    setError(null);
+
     const recognition = new SpeechRecognitionAPI();
     recognition.continuous = false;
     recognition.interimResults = false;
@@ -41,7 +44,11 @@ export function useSpeechRecognition() {
     recognition.start();
   }, [SpeechRecognitionAPI]);
 
-  return { isListening, transcript, error, startListening };
+  const resetTranscript = useCallback(() => {
+    setTranscript('');
+  }, []);
+
+  return { isListening, transcript, error, startListening, resetTranscript };
 }
 
 export function speakText(text: string) {

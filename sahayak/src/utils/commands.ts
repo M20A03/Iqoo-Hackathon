@@ -194,7 +194,7 @@ export function parseCommand(transcript: string): Command {
   }
 
   // ── 11. EMERGENCY ──
-  if (/\b(emergency|help\s*me|sos)\b/.test(lower)) {
+  if (/\b(emergency|help\s*me|sos)\b/.test(lower) || lower === 'help') {
     return { action: 'EMERGENCY', confidence: 0.95 };
   }
 

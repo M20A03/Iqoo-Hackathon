@@ -8,7 +8,20 @@ export interface FaceGestures {
   winkLeft: boolean;
   winkRight: boolean;
   blinkBoth: boolean;
+  sustainedWinkLeft: boolean; // Sahayak-NeuroEdge enhancement
+  doubleEyebrowRaise: boolean; // Sahayak-NeuroEdge enhancement
 }
+
+// Module-level singletons
+let globalFaceLandmarker: FaceLandmarker | null = null;
+let globalStream: MediaStream | null = null;
+let consumerCount = 0;
+let isModelLoading = false;
+
+// NeuroEdge timing states
+let winkStartTime = 0;
+let lastEyebrowTime = 0;
+let eyebrowCount = 0;
 
 export function useFaceTracking(isActive: boolean) {
   const [status, setStatus] = useState<string>('Initializing...');
@@ -19,23 +32,29 @@ export function useFaceTracking(isActive: boolean) {
     winkLeft: false,
     winkRight: false,
     blinkBoth: false,
+    sustainedWinkLeft: false,
+    doubleEyebrowRaise: false,
   });
   
-  const [faceLandmarker, setFaceLandmarker] = useState<FaceLandmarker | null>(null);
   const [isMockMode, setIsMockMode] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const requestRef = useRef<number>();
 
-  // Load MediaPipe FaceLandmarker model with a timeout fallback
+  // Load MediaPipe FaceLandmarker model once
   useEffect(() => {
-    let active = true;
+    if (globalFaceLandmarker || isModelLoading) {
+      if (globalFaceLandmarker) setStatus('Model Ready');
+      return;
+    }
+
+    isModelLoading = true;
     const initializeTracker = async () => {
       try {
         setStatus('Loading Face Model...');
         const filesetResolver = await FilesetResolver.forVisionTasks(
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm'
         );
-        const landmarkerPromise = FaceLandmarker.createFromOptions(filesetResolver, {
+        const landmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
           baseOptions: {
             modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
             delegate: 'GPU'
@@ -45,57 +64,40 @@ export function useFaceTracking(isActive: boolean) {
           numFaces: 1
         });
 
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Face Model Timeout')), 4000)
-        );
-
-        const landmarker = await Promise.race([landmarkerPromise, timeoutPromise]) as FaceLandmarker;
-        if (active) {
-          setFaceLandmarker(landmarker);
-          setStatus('Model Ready');
-        }
+        globalFaceLandmarker = landmarker;
+        setStatus('Model Ready');
       } catch (err) {
-        console.warn('Face model loading failed or timed out, activating simulation mode:', err);
-        if (active) {
-          setIsMockMode(true);
-          setStatus('⚠️ Model Timed Out. Simulator Active.');
-        }
+        console.warn('Face model loading failed, using simulator:', err);
+        setIsMockMode(true);
+        setStatus('⚠️ Model Error. Simulator Active.');
+      } finally {
+        isModelLoading = false;
       }
     };
     initializeTracker();
-    return () => { active = false; };
   }, []);
 
-  // Manage camera and predictions inside the hook
+  // Manage camera and predictions
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!isActive || !videoElement) {
-      if (videoElement && videoElement.srcObject) {
-        const stream = videoElement.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoElement.srcObject = null;
-      }
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
       return;
     }
 
-    if (isMockMode) {
-      // In mock mode we don't start the webcam, the UI will present buttons
-      return;
-    }
-
-    if (!faceLandmarker) return;
-
-    let activeStream: MediaStream | null = null;
+    if (isMockMode) return;
 
     const startCamera = async () => {
       try {
-        setStatus('Starting camera...');
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: 'user', width: 320, height: 240 } 
-        });
-        activeStream = stream;
-        videoElement.srcObject = stream;
+        if (!globalStream) {
+          setStatus('Starting camera...');
+          globalStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: 320, height: 240 }
+          });
+        }
+
+        consumerCount++;
+        videoElement.srcObject = globalStream;
         videoElement.play();
         
         videoElement.onloadeddata = () => {
@@ -103,17 +105,17 @@ export function useFaceTracking(isActive: boolean) {
           predictWebcam();
         };
       } catch (err) {
-        console.error(err);
+        console.error('Camera access failed:', err);
         setIsMockMode(true);
         setStatus('⚠️ Camera blocked. Simulator Active.');
       }
     };
 
     const predictWebcam = () => {
-      if (!isActive || !videoElement || !faceLandmarker) return;
+      if (!isActive || !videoElement || !globalFaceLandmarker) return;
 
       let startTimeMs = performance.now();
-      const results = faceLandmarker.detectForVideo(videoElement, startTimeMs);
+      const results = globalFaceLandmarker.detectForVideo(videoElement, startTimeMs);
 
       if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
         const blendshapes = results.faceBlendshapes[0].categories;
@@ -126,13 +128,39 @@ export function useFaceTracking(isActive: boolean) {
         const browOuterUpLeft = blendshapes.find(b => b.categoryName === 'browOuterUpLeft')?.score || 0;
         const browOuterUpRight = blendshapes.find(b => b.categoryName === 'browOuterUpRight')?.score || 0;
 
+        const isWinkingLeft = eyeBlinkLeft > 0.5 && eyeBlinkRight < 0.25;
+        const isEyebrowsUp = browOuterUpLeft > 0.45 || browOuterUpRight > 0.45;
+        const now = performance.now();
+
+        // Sustained Wink Logic (2 seconds)
+        if (isWinkingLeft) {
+          if (winkStartTime === 0) winkStartTime = now;
+        } else {
+          winkStartTime = 0;
+        }
+
+        // Double Eyebrow Raise Logic (within 800ms)
+        let doubleRaiseTriggered = false;
+        if (isEyebrowsUp && (now - lastEyebrowTime > 300)) {
+          eyebrowCount++;
+          lastEyebrowTime = now;
+          if (eyebrowCount >= 2) {
+            doubleRaiseTriggered = true;
+            eyebrowCount = 0;
+          }
+        } else if (now - lastEyebrowTime > 800) {
+          eyebrowCount = 0;
+        }
+
         setGestures({
           smile: (mouthSmileLeft > 0.4 && mouthSmileRight > 0.4),
-          eyebrowsRaised: (browOuterUpLeft > 0.45 || browOuterUpRight > 0.45),
+          eyebrowsRaised: isEyebrowsUp,
           mouthOpen: jawOpen > 0.35,
-          winkLeft: eyeBlinkLeft > 0.5 && eyeBlinkRight < 0.25,
+          winkLeft: isWinkingLeft,
           winkRight: eyeBlinkRight > 0.5 && eyeBlinkLeft < 0.25,
           blinkBoth: eyeBlinkLeft > 0.55 && eyeBlinkRight > 0.55,
+          sustainedWinkLeft: winkStartTime !== 0 && (now - winkStartTime > 2000),
+          doubleEyebrowRaise: doubleRaiseTriggered,
         });
       }
 
@@ -141,13 +169,24 @@ export function useFaceTracking(isActive: boolean) {
       }
     };
 
-    startCamera();
+    // Wait for landmarker to be ready if it's not yet
+    const checkReady = setInterval(() => {
+      if (globalFaceLandmarker) {
+        clearInterval(checkReady);
+        startCamera();
+      }
+    }, 500);
 
     return () => {
+      clearInterval(checkReady);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      if (activeStream) {
-        activeStream.getTracks().forEach(track => track.stop());
+
+      consumerCount--;
+      if (consumerCount <= 0 && globalStream) {
+        globalStream.getTracks().forEach(track => track.stop());
+        globalStream = null;
       }
+
       if (videoElement) {
         videoElement.srcObject = null;
       }
@@ -158,9 +197,11 @@ export function useFaceTracking(isActive: boolean) {
         winkLeft: false,
         winkRight: false,
         blinkBoth: false,
+        sustainedWinkLeft: false,
+        doubleEyebrowRaise: false,
       });
     };
-  }, [isActive, faceLandmarker, isMockMode]);
+  }, [isActive, isMockMode]);
 
   return { status, gestures, setGestures, videoRef, isMockMode };
 }

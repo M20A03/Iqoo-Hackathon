@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { OCRComponent } from './OCRComponent';
-import { FileText } from 'lucide-react';
+import { FileText, Volume2 } from 'lucide-react';
 import { speakText } from '../hooks/useSpeechRecognition';
 
 interface ScanComponentProps {
@@ -16,20 +16,22 @@ export function ScanComponent({ onTextExtracted }: ScanComponentProps) {
   };
 
   return (
-    <div className="w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col">
       <OCRComponent onTextExtracted={handleTextExtracted} speakText={speakText} />
 
       {scannedText && (
-        <div className="p-5 bg-surface-dark border border-outline-variant/35 rounded-2xl flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-accent-gold text-xs font-bold font-mono">
-            <FileText size={14} /> EXTRACTED TEXT
+        <div className="p-6 bg-background/60 backdrop-blur-md border-t border-surface-border flex flex-col gap-4 animate-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-2 text-secondary text-[10px] font-black uppercase tracking-[0.2em]">
+            <FileText size={14} /> Extracted Data
           </div>
-          <p className="text-sm text-on-surface font-semibold bg-deep-forest/40 p-3 rounded-xl border border-outline-variant/20">{scannedText}</p>
+          <div className="p-4 bg-surface rounded-2xl border border-surface-border/50">
+             <p className="text-sm text-text-primary font-medium leading-relaxed italic">{scannedText}</p>
+          </div>
           <button
             onClick={() => speakText(scannedText)}
-            className="w-full min-h-[48px] bg-deep-forest text-primary border border-outline-variant/35 rounded-xl text-xs font-bold hover:bg-surface-dark active:scale-95 duration-150"
+            className="w-full py-4 bg-primary hover:bg-primary-light text-text-primary border border-surface-border rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 shadow-soft"
           >
-            🔊 Read Aloud
+            <Volume2 size={16} className="text-secondary" /> Read Aloud
           </button>
         </div>
       )}

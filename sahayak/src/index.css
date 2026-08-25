@@ -1,82 +1,83 @@
 @import "tailwindcss";
 
-:root {
-  --color-bg: #121412;
-  --color-text: #e2e3df;
-  --color-accent: #FFB800;
-  --color-accent-fg: #0B301B;
-  --color-primary: #c4f1d5;
-  --color-surface-dark: #16442C;
-  --touch-target: 64px;
-  --font-size-base: 18px;
-  --font-family: 'Lexend', system-ui, sans-serif;
+@theme {
+  --color-primary: #0B301B;
+  --color-secondary: #FFB800;
+  --color-accent: #2CA470;
+  --color-background: #F8F9FA;
+  --color-surface: #FFFFFF;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #4A4A4A;
+  --color-success: #28A745;
+  --color-error: #D94111;
 }
 
-/* Base Body Styles */
+:root {
+  --font-sans: 'Lexend', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --touch-target: 48px;
+}
+
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
   margin: 0;
   padding: 0;
-  transition: all 0.3s ease;
-  background-image: radial-gradient(circle at 50% 50%, rgba(196, 241, 213, 0.05) 0%, transparent 80%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* WCAG AAA 64px+ targets for touch controls */
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
 button, input, select, textarea {
   min-height: var(--touch-target);
-  font-size: inherit;
   font-family: inherit;
 }
 
-/* Accessible focus state */
-*:focus-visible {
-  outline: 4px solid var(--color-accent) !important;
-  outline-offset: 4px !important;
+/* Custom Scrollbar - Light */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* Mode overrides */
-body.mode-visual {
-  --font-size-base: 24px;
+::-webkit-scrollbar-track {
+  background: var(--color-background);
 }
 
-body.mode-motor {
-  --touch-target: 76px;
+::-webkit-scrollbar-thumb {
+  background: #CED4DA;
+  border-radius: 10px;
 }
 
-body.mode-cognitive .cognitive-hide {
-  display: none !important;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
 }
 
-/* Accessibility scanning styles */
-.item-scanning {
-  outline: 6px solid var(--color-accent) !important;
-  outline-offset: 4px;
-  animation: pulse-scan 1s infinite alternate;
+/* Animations */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
-@keyframes pulse-scan {
-  0% { transform: scale(1.02); }
-  100% { transform: scale(0.98); }
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Flashing border for hearing mode alerts */
-.flashing-border {
-  animation: flash 1s infinite alternate;
+.card-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F1F3F5 100%);
 }
 
-@keyframes flash {
-  0% { border-color: transparent; }
-  100% { border-color: var(--color-accent); }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #F1F3F5;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #ADB5BD;
+  border-radius: 4px;
 }

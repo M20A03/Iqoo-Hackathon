@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caregiver HUD — PulseEdge-OS</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* New Color Palette */
+            --primary: #0B301B;
+            --primary-light: #16442C;
+            --secondary: #FFB800;
+            --accent: #2CA470;
+            --background: #0A0A0A;
+            --surface: #141414;
+            --surface-light: #1E1E1E;
+            --text-primary: #E2E3DF;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --success: #4ADE80;
+            --error: #EF4444;
+            --border: rgba(255, 255, 255, 0.05);
+
+            --font-sans: 'Lexend', sans-serif;
+            --font-serif: 'Playfair Display', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s ease-in-out;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 24px;
+        }
+
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        h1 span {
+            color: var(--secondary);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(44, 164, 112, 0.1);
+            border: 1px solid rgba(44, 164, 112, 0.2);
+            padding: 10px 20px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-dot.offline {
+            background-color: var(--error);
+            box-shadow: 0 0 10px var(--error);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        /* Layout Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel h2 {
+            font-family: var(--font-serif);
+            font-size: 18px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .metric-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-family: var(--font-serif);
+            font-size: 48px;
+            font-weight: 900;
+        }
+
+        .metric-unit {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* Gaze Tracker */
+        .gaze-container {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            background-image: radial-gradient(circle at center, #111 0%, #000 100%);
+        }
+
+        .gaze-cursor {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--secondary);
+            border-radius: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(255, 184, 0, 0.5);
+            transition: left 0.1s linear, top 0.1s linear;
+        }
+
+        .gaze-cursor::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 4px;
+            background: var(--secondary);
+            border-radius: 50%;
+        }
+
+        /* Spectrogram */
+        .spectrogram {
+            height: 120px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            padding: 10px;
+            background: #050505;
+            border-radius: 12px;
+        }
+
+        .bar {
+            flex: 1;
+            background-color: var(--accent);
+            border-radius: 2px 2px 0 0;
+            min-height: 2px;
+        }
+
+        /* Controls */
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            padding: 16px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: none;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--secondary);
+        }
+
+        .btn-push {
+            background: var(--secondary);
+            color: var(--background);
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-push:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 184, 0, 0.2);
+        }
+
+        /* Logs */
+        .log-container {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 8px;
+        }
+
+        .log-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .log-text {
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .log-text.alert {
+            color: var(--error);
+        }
+
+        /* Connection Section */
+        .conn-panel {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .conn-input {
+            flex: 1;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: #fff;
+            padding: 12px 20px;
+            font-family: inherit;
+        }
+
+        .btn-conn {
+            background: var(--primary-light);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0 24px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>⚡ PulseEdge<span>-OS</span></h1>
+                <p style="color: var(--text-secondary); margin: 4px 0 0 0; font-size: 14px;">Caregiver Telemetry HUD</p>
+            </div>
+            <div class="status-badge">
+                <div id="status-dot" class="status-dot offline"></div>
+                <span id="status-text">Disconnected</span>
+            </div>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <span class="stat-label">System Mode</span>
+                <span class="stat-value" style="color: var(--accent);">Edge-AI</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Network</span>
+                <span class="stat-value">Local P2P</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Compliance</span>
+                <span class="stat-value" style="color: var(--secondary);">94%</span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Device Connection</h2>
+            <div class="conn-panel">
+                <input type="text" id="ws-url" class="conn-input" value="ws://192.168.1.100:8080/telemetry" placeholder="ws://[PHONE_IP]:8080/telemetry">
+                <button onclick="connectWS()" class="btn-conn">Connect HUD</button>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Diagnostics & Tracking -->
+            <div class="panel">
+                <h2>Health Telemetry</h2>
+                <div class="vitals-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">HEART RATE</div>
+                        <div class="metric-value" id="val-hr" style="color: var(--error);">-- <span class="metric-unit">BPM</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">OXYGEN (SpO2)</div>
+                        <div class="metric-value" id="val-spo2" style="color: var(--accent);">-- <span class="metric-unit">%</span></div>
+                    </div>
+                </div>
+
+                <h2>Iris Gaze Tracker</h2>
+                <div class="gaze-container">
+                    <div id="gaze-cursor" class="gaze-cursor" style="left: 50%; top: 50%;"></div>
+                </div>
+
+                <h2>Pulmonary Spectrogram (200Hz - 1000Hz)</h2>
+                <div id="spectrogram" class="spectrogram"></div>
+            </div>
+
+            <!-- Logs & Interop -->
+            <div class="panel">
+                <h2>Super Clipboard Sync</h2>
+                <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Push remote prescriptions to local drug database.</p>
+                <textarea id="prescription-json">prescription:{"name": "Paracetamol", "category": "Analgesic", "warning": "Take after meals"}</textarea>
+                <button onclick="copyPrescription()" class="btn-push">Copy to Clipboard</button>
+
+                <h2>Activity Stream</h2>
+                <div id="log-list" class="log-container">
+                    <div class="log-item" style="text-align: center; color: var(--text-muted); italic">
+                        Awaiting connection...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        const spec = document.getElementById('spectrogram');
+        for(let i=0; i<50; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            spec.appendChild(bar);
+        }
+
+        function connectWS() {
+            const url = document.getElementById('ws-url').value;
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+
+            if (ws) ws.close();
+
+            try {
+                ws = new WebSocket(url);
+
+                ws.onopen = () => {
+                    dot.classList.remove('offline');
+                    txt.innerText = 'Connected & Syncing';
+                    addLog('System', 'P2P Telemetry Bridge Established');
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleTelemetry(data);
+                    } catch(e) {
+                        addLog('Raw', event.data);
+                    }
+                };
+
+                ws.onclose = () => {
+                    dot.classList.add('offline');
+                    txt.innerText = 'Disconnected';
+                    addLog('System', 'Connection Terminated');
+                };
+
+                ws.onerror = () => {
+                    addLog('Error', 'WebSocket handshake failed. Check IP.');
+                };
+            } catch(e) {
+                alert("Invalid URL format.");
+            }
+        }
+
+        function handleTelemetry(json) {
+            if (json.type === 'vitals') {
+                document.getElementById('val-hr').innerHTML = `${json.hr} <span class="metric-unit">BPM</span>`;
+                document.getElementById('val-spo2').innerHTML = `${json.spo2} <span class="metric-unit">%</span>`;
+                addLog('Vitals', `Ingested: HR ${json.hr}, SpO2 ${json.spo2}%`);
+            }
+
+            if (json.type === 'gaze') {
+                const cursor = document.getElementById('gaze-cursor');
+                cursor.style.left = (json.x * 100) + '%';
+                cursor.style.top = (json.y * 100) + '%';
+
+                // Animate bars on movement
+                const bars = spec.children;
+                for(let b of bars) {
+                    b.style.height = (Math.random() * 90 + 5) + '%';
+                    b.style.opacity = Math.random() * 0.5 + 0.5;
+                }
+            }
+
+            if (json.type === 'pathology') {
+                addLog('Clinical Alert', json.value, true);
+            }
+
+            if (json.type === 'log') {
+                addLog('App', json.message, json.isAlert);
+            }
+        }
+
+        function copyPrescription() {
+            const text = document.getElementById('prescription-json').value;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied! OriginOS Office Kit will now sync this to the mobile drug database.');
+            });
+        }
+
+        function addLog(source, message, isAlert = false) {
+            const list = document.getElementById('log-list');
+            const item = document.createElement('div');
+            item.className = 'log-item';
+
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            
+            item.innerHTML = `
+                <div class="log-header">
+                    <span>${source}</span>
+                    <span>${time}</span>
+                </div>
+                <div class="log-text ${isAlert ? 'alert' : ''}">${message}</div>
+            `;
+
+            list.insertBefore(item, list.firstChild);
+            if (list.children.length > 50) list.lastChild.remove();
+        }
+    </script>
+</body>
+</html>

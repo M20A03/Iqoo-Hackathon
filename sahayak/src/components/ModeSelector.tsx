@@ -7,30 +7,34 @@ interface ModeSelectorProps {
 }
 
 const modes = [
-  { id: 'voice', label: 'Voice', icon: <Mic size={24} /> },
-  { id: 'switch', label: 'Switch', icon: <ToggleRight size={24} /> },
-  { id: 'face', label: 'Face', icon: <ScanFace size={24} /> },
-  { id: 'eye', label: 'Eye', icon: <Eye size={24} /> },
-  { id: 'hybrid', label: 'Hybrid', icon: <Combine size={24} /> },
+  { id: 'voice', label: 'Voice', icon: <Mic size={20} /> },
+  { id: 'switch', label: 'Switch', icon: <ToggleRight size={20} /> },
+  { id: 'face', label: 'Face', icon: <ScanFace size={20} /> },
+  { id: 'eye', label: 'Eye', icon: <Eye size={20} /> },
+  { id: 'hybrid', label: 'Hybrid', icon: <Combine size={20} /> },
 ] as const;
 
 export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
   return (
-    <div className="flex flex-wrap gap-3 mb-6" role="group" aria-label="Control Modes">
+    <div className="flex flex-wrap md:flex-nowrap gap-3 mb-4" role="group" aria-label="Control Modes">
       {modes.map((mode) => (
         <button
           key={mode.id}
           onClick={() => onModeChange(mode.id as ControlMode)}
-          className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all min-w-[80px] ${
+          className={`flex-1 flex flex-col items-center justify-center p-5 rounded-2xl border transition-all min-w-[90px] group ${
             currentMode === mode.id
-              ? 'border-yellow-500 bg-yellow-400 text-black font-bold scale-105 shadow-md'
-              : 'border-yellow-500/20 bg-zinc-950 text-yellow-500/60 hover:border-yellow-500/70 hover:text-yellow-400'
+              ? 'border-primary bg-primary text-white shadow-soft scale-[1.02]'
+              : 'border-surface-border bg-surface text-text-secondary hover:border-primary/40 hover:text-primary'
           }`}
           aria-pressed={currentMode === mode.id}
           aria-label={`${mode.label} Control Mode`}
         >
-          {mode.icon}
-          <span className="text-xs font-bold mt-2 uppercase tracking-wide">{mode.label}</span>
+          <div className={`mb-3 p-3 rounded-xl transition-colors ${
+             currentMode === mode.id ? 'bg-white/10 text-secondary' : 'bg-surface-light text-text-muted group-hover:text-primary'
+          }`}>
+             {mode.icon}
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest leading-none">{mode.label}</span>
         </button>
       ))}
     </div>

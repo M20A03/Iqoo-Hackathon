@@ -16,7 +16,13 @@ export function FaceTracker({ onGesture, isActive }: FaceTrackerProps) {
 
     const now = Date.now();
     if (now - lastGestureTime.current > 1500) {
-      if (gestures.mouthOpen) {
+      if (gestures.sustainedWinkLeft) {
+        onGesture('SUSTAINED_WINK_LEFT');
+        lastGestureTime.current = now;
+      } else if (gestures.doubleEyebrowRaise) {
+        onGesture('DOUBLE_EYEBROW_RAISE');
+        lastGestureTime.current = now;
+      } else if (gestures.mouthOpen) {
         onGesture('OPEN_MOUTH');
         lastGestureTime.current = now;
       } else if (gestures.winkLeft) {
