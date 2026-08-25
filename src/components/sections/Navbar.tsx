@@ -18,11 +18,15 @@ export function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full border border-white/80 bg-white/75 px-5 py-2.5 shadow-lg backdrop-blur-xl transition-all">
         {/* Brand Logo & Name */}
         <a href="#top" className="flex items-center gap-3 group">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 p-1 text-white shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
-            <Activity className="h-6 w-6 text-white" />
+          <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl overflow-hidden shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform border border-sky-300/70 bg-slate-900">
+            <img
+              src="/sahayak-logo.png"
+              alt="PulseEdge-OS Sahayak Official Logo"
+              className="h-full w-full object-cover"
+            />
             <span className="absolute -top-1 -right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border border-white"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500 border border-white"></span>
             </span>
           </div>
           <div className="flex flex-col">

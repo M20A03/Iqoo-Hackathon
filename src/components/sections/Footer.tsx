@@ -5,8 +5,12 @@ export function Footer() {
     <footer className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-12 border-t border-slate-800">
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-white shadow-lg shadow-sky-500/25">
-            <Activity className="h-7 w-7" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl overflow-hidden border border-sky-400/40 shadow-xl shadow-sky-500/25 bg-slate-900">
+            <img
+              src="/sahayak-logo.png"
+              alt="PulseEdge-OS Sahayak Official Logo"
+              className="h-full w-full object-cover"
+            />
           </div>
 
           <div className="mt-4 flex items-center gap-2 rounded-full bg-sky-500/10 border border-sky-400/30 px-3.5 py-1 text-xs font-black uppercase text-sky-300">
