@@ -159,7 +159,7 @@ export function CaregiverDashboard() {
             className="w-full py-4 bg-secondary hover:bg-secondary-hover text-primary font-black rounded-xl shadow-soft transition-transform active:scale-[0.98] flex items-center justify-center gap-2 uppercase tracking-wider text-sm border-b-4 border-secondary-hover"
             onClick={() => {
                const msg = `prescription:{"name": "Paracetamol", "category": "Analgesic", "warning": "Take after meals"}`;
-               localStorage.setItem('sahayak_super_clipboard', JSON.stringify({ timestamp: Date.now(), lastAction: 'Demo prescription' }));
+               localStorage.setItem('sahayak_super_clipboard', JSON.stringify({ timestamp: Date.now(), lastAction: 'Demo prescription', payload: msg }));
                alert("Simulated Super Clipboard: Prescription data sent to phone.");
             }}
           >

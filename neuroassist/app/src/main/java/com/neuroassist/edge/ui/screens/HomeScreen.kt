@@ -147,7 +147,7 @@ fun HomeScreen(
                     // ── Accessibility / Permission Dashboard ──
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {

@@ -1,5 +1,5 @@
-export type ControlMode = 'voice' | 'switch' | 'face' | 'eye' | 'hybrid';
-import { Mic, ToggleRight, ScanFace, Eye, Combine } from 'lucide-react';
+export type ControlMode = 'voice' | 'switch' | 'face' | 'eye' | 'hybrid' | 'diagnostics';
+import { Mic, ToggleRight, ScanFace, Eye, Combine, Stethoscope } from 'lucide-react';
 
 interface ModeSelectorProps {
   currentMode: ControlMode;
@@ -7,34 +7,35 @@ interface ModeSelectorProps {
 }
 
 const modes = [
-  { id: 'voice', label: 'Voice', icon: <Mic size={20} /> },
-  { id: 'switch', label: 'Switch', icon: <ToggleRight size={20} /> },
-  { id: 'face', label: 'Face', icon: <ScanFace size={20} /> },
-  { id: 'eye', label: 'Eye', icon: <Eye size={20} /> },
-  { id: 'hybrid', label: 'Hybrid', icon: <Combine size={20} /> },
+  { id: 'diagnostics', label: 'Diagnostics', icon: <Stethoscope size={18} /> },
+  { id: 'voice', label: 'Voice', icon: <Mic size={18} /> },
+  { id: 'eye', label: 'Eye Gaze', icon: <Eye size={18} /> },
+  { id: 'face', label: 'Face Click', icon: <ScanFace size={18} /> },
+  { id: 'switch', label: 'Switch', icon: <ToggleRight size={18} /> },
+  { id: 'hybrid', label: 'Hybrid', icon: <Combine size={18} /> },
 ] as const;
 
 export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
   return (
-    <div className="flex flex-wrap md:flex-nowrap gap-3 mb-4" role="group" aria-label="Control Modes">
+    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4" role="group" aria-label="Control Modes">
       {modes.map((mode) => (
         <button
           key={mode.id}
           onClick={() => onModeChange(mode.id as ControlMode)}
-          className={`flex-1 flex flex-col items-center justify-center p-5 rounded-2xl border transition-all min-w-[90px] group ${
+          className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all group ${
             currentMode === mode.id
-              ? 'border-primary bg-primary text-white shadow-soft scale-[1.02]'
-              : 'border-surface-border bg-surface text-text-secondary hover:border-primary/40 hover:text-primary'
+              ? 'border-sky-500 bg-sky-500 text-white shadow-md shadow-sky-500/20 scale-[1.02]'
+              : 'border-slate-200 bg-white/80 text-slate-600 hover:border-sky-300 hover:text-sky-600'
           }`}
           aria-pressed={currentMode === mode.id}
-          aria-label={`${mode.label} Control Mode`}
+          aria-label={`${mode.label} Mode`}
         >
-          <div className={`mb-3 p-3 rounded-xl transition-colors ${
-             currentMode === mode.id ? 'bg-white/10 text-secondary' : 'bg-surface-light text-text-muted group-hover:text-primary'
+          <div className={`mb-1.5 p-2 rounded-xl transition-colors ${
+             currentMode === mode.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:text-sky-600'
           }`}>
              {mode.icon}
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest leading-none">{mode.label}</span>
+          <span className="text-[10px] font-black uppercase tracking-wider leading-none">{mode.label}</span>
         </button>
       ))}
     </div>

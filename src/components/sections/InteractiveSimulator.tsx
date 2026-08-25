@@ -1,26 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  Play,
   Stethoscope,
   Eye,
   HeartPulse,
   Pill,
   Activity,
-  Mic,
   Volume2,
   AlertTriangle,
   ShieldCheck,
-  Sparkles,
-  CheckCircle2,
   RotateCcw,
-  Smartphone,
-  Radio,
-  HelpCircle,
-  TrendingDown,
   Info,
-  Layers,
-  ArrowRight,
   ShieldAlert,
+  FileText,
+  Printer,
+  Sparkles,
 } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import confetti from "canvas-confetti";
@@ -30,9 +23,11 @@ type SimulatorTab = "fft" | "sclera" | "ppg" | "pharma" | "gaze" | "tremor";
 export function InteractiveSimulator() {
   const [activeTab, setActiveTab] = useState<SimulatorTab>("fft");
 
-  // --- 1. Audio FFT Stethoscope State ---
+  // --- 1. Audio FFT Stethoscope State & Web Audio Synthesizer ---
   const [stethoscopeMode, setStethoscopeMode] = useState<"normal" | "wheeze" | "crackle">("wheeze");
-  const [isAudioLive, setIsAudioLive] = useState(true);
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const oscillatorRef = useRef<OscillatorNode | null>(null);
 
   // --- 2. Sclera & Conjunctiva State ---
   const [scleraTarget, setScleraTarget] = useState<"anemia" | "jaundice" | "healthy">("anemia");
@@ -58,6 +53,9 @@ export function InteractiveSimulator() {
   // --- 6. Tremor Filter State ---
   const [tremorEnabled, setTremorEnabled] = useState(true);
   const [drawnPoints, setDrawnPoints] = useState<{ x: number; y: number }[]>([]);
+
+  // --- 7. Clinical Report Modal ---
+  const [showReportModal, setShowReportModal] = useState(false);
 
   // Dwell Timer simulation for 360 radial progress
   useEffect(() => {
@@ -107,6 +105,74 @@ export function InteractiveSimulator() {
         break;
     }
   };
+
+  // Web Audio Synthesizer for Stethoscope sounds
+  const toggleSoundSynthesis = () => {
+    if (isPlayingSound) {
+      if (oscillatorRef.current) {
+        try { oscillatorRef.current.stop(); } catch (e) {}
+        oscillatorRef.current = null;
+      }
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+        audioCtxRef.current = null;
+      }
+      setIsPlayingSound(false);
+      return;
+    }
+
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioCtx();
+      audioCtxRef.current = ctx;
+
+      if (stethoscopeMode === "wheeze") {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(480, ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        oscillatorRef.current = osc;
+      } else if (stethoscopeMode === "crackle") {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(240, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        oscillatorRef.current = osc;
+      } else {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(140, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        oscillatorRef.current = osc;
+      }
+      setIsPlayingSound(true);
+    } catch (e) {
+      console.error("Audio error:", e);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (oscillatorRef.current) {
+        try { oscillatorRef.current.stop(); } catch (e) {}
+      }
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+      }
+    };
+  }, [stethoscopeMode]);
 
   // PPG Scanner Simulation
   const startPpgScan = () => {
@@ -159,50 +225,86 @@ export function InteractiveSimulator() {
       brandPrice: 195.0,
       genericPrice: 42.0,
       savingsPct: "78%",
-      category: "DANGEROUS CDSCO CONTRAINDICATION",
+      category: "Lethal Hemorrhage Warning",
     },
   };
 
   const currentPharma = pharmaData[selectedPharma];
-  const totalBrand = (currentPharma.brandPrice * pharmaQty).toFixed(2);
-  const totalGeneric = (currentPharma.genericPrice * pharmaQty).toFixed(2);
-  const totalSavings = (
-    (currentPharma.brandPrice - currentPharma.genericPrice) *
-    pharmaQty
-  ).toFixed(2);
+  const brandTotal = (currentPharma.brandPrice * pharmaQty).toFixed(2);
+  const genericTotal = (currentPharma.genericPrice * pharmaQty).toFixed(2);
+  const savingsTotal = (Number(brandTotal) - Number(genericTotal)).toFixed(2);
+
+  // Spoken voice guidance for Jan Aushadhi
+  const speakPharmaGuidance = (lang: "en" | "hi" | "kn") => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    let text = "";
+    if (selectedPharma === "aspirin_warfarin") {
+      text = lang === "hi"
+        ? "चेतावनी! एस्पिरिन और वारफारिन एक साथ लेने से आंतरिक रक्तस्राव का गंभीर खतरा है।"
+        : lang === "kn"
+        ? "ಎಚ್ಚರಿಕೆ! ಆಸ್ಪಿರಿನ್ ಮತ್ತು ವಾರ್ಫಾರಿನ್ ಒಟ್ಟಿಗೆ ತೆಗೆದುಕೊಳ್ಳುವುದು ರಕ್ತಸ್ರಾವಕ್ಕೆ ಕಾರಣವಾಗಬಹುದು."
+        : "Warning! Concurrent use of Aspirin and Warfarin poses severe risk of internal hemorrhage.";
+    } else {
+      text = lang === "hi"
+        ? `${currentPharma.brandName} के बदले जन औषधि जेनेरिक उपलब्ध है। कुल बचत ₹${savingsTotal} रुपये।`
+        : lang === "kn"
+        ? `${currentPharma.brandName} ಬದಲಿಗೆ ಜನ ಔಷಧಿ ಲಭ್ಯವಿದೆ. ಒಟ್ಟು ಉಳಿತಾಯ ₹${savingsTotal} ರೂಪಾಯಿ.`
+        : `${currentPharma.brandName} generic equivalent saves ₹${savingsTotal} at Jan Aushadhi.`;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utterance);
+  };
 
   return (
-    <section id="simulator" className="relative overflow-hidden py-16 lg:py-24 bg-gradient-to-b from-transparent via-sky-50/40 to-slate-100/60">
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
+    <section id="simulator" className="py-24 sm:py-32 relative overflow-hidden bg-slate-50/60 border-y border-slate-200/80">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-sky-50 border border-sky-200 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-sky-700">
-                <Sparkles className="h-3.5 w-3.5 text-sky-500" /> Interactive Clinical Simulator
-              </span>
-              <h2 className="mt-3 font-sans text-3xl font-extrabold text-slate-900 sm:text-4xl">
-                Experience All 6 Neural &amp; Clinical Engines
-              </h2>
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-sky-300 bg-sky-50 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-sky-800 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5 text-sky-500" />
+              <span>Interactive Clinical Playground</span>
             </div>
-            <p className="max-w-md font-sans text-xs sm:text-sm text-slate-500 leading-relaxed">
-              Every engine runs 100% locally on Snapdragon NPU hardware. Select a module below to test its real-time diagnostic stream:
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 font-display">
+              Test Every Feature in Real-Time
+            </h2>
+            <p className="text-base text-slate-600 font-sans leading-relaxed">
+              Experience the biophysical sensor algorithms and zero-touch accessibility engine directly in your browser.
             </p>
           </div>
         </Reveal>
 
-        {/* 6 Tabs Pill Bar */}
-        <div className="mt-8 flex flex-wrap gap-2">
+        {/* Global Action Bar */}
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={() => setShowReportModal(true)}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-sky-500/20 hover:from-sky-600 hover:to-cyan-600 active:scale-95 transition-all"
+          >
+            <FileText className="h-4 w-4" />
+            Generate Clinical Medical Summary (PDF)
+          </button>
+        </div>
+
+        {/* ============================================================== */}
+        {/* TABS NAVIGATION                                                */}
+        {/* ============================================================== */}
+        <div className="mt-4 flex flex-wrap justify-center gap-2 p-1.5 rounded-3xl bg-slate-200/50 backdrop-blur-md border border-slate-300/40">
           {[
-            { id: "fft", label: "🩺 Acoustic Stethoscope (Audio FFT)", badge: "200Hz–1kHz" },
-            { id: "sclera", label: "👁️ Sclera & Conjunctiva Scanner", badge: "Optical" },
-            { id: "ppg", label: "💓 Camera PPG Vitals (BPM & SpO2)", badge: "Capillary" },
-            { id: "pharma", label: "💊 Jan Aushadhi & CDSCO Drawer", badge: "Up to 85% Off" },
+            { id: "fft", label: "🩺 Acoustic Stethoscope FFT", badge: "Audio" },
+            { id: "sclera", label: "👁️ Sclera & Conjunctiva Scan", badge: "Optical" },
+            { id: "ppg", label: "💓 Contactless Camera PPG", badge: "Vitals" },
+            { id: "pharma", label: "💊 Jan Aushadhi & CDSCO Shield", badge: "Pharma" },
             { id: "gaze", label: "👤 60 FPS Gaze & Breath Puff", badge: "Zero-Touch" },
             { id: "tremor", label: "〰️ Parkinson's Tremor Filter", badge: "Low-Pass" },
           ].map((t) => (
             <button
               key={t.id}
-              onClick={() => setActiveTab(t.id as SimulatorTab)}
+              onClick={() => {
+                setActiveTab(t.id as SimulatorTab);
+                setIsPlayingSound(false);
+              }}
               className={`rounded-2xl px-4 py-2.5 text-xs font-bold transition-all border flex items-center gap-2 ${
                 activeTab === t.id
                   ? "bg-slate-900 text-white border-slate-900 shadow-md scale-[1.02]"
@@ -233,7 +335,17 @@ export function InteractiveSimulator() {
                       <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
                       AUDIORECORD PCM 44.1 kHz
                     </span>
-                    <span className="text-slate-400">FFT BAND: 200 Hz – 1000 Hz</span>
+                    <button
+                      onClick={toggleSoundSynthesis}
+                      className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black transition-all ${
+                        isPlayingSound
+                          ? "bg-rose-500 text-white animate-pulse"
+                          : "bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30"
+                      }`}
+                    >
+                      <Volume2 className="h-3.5 w-3.5" />
+                      {isPlayingSound ? "Stop Breath Audio" : "Listen to Breath Audio"}
+                    </button>
                   </div>
 
                   {/* Frequency Waveform Bars */}
@@ -303,7 +415,10 @@ export function InteractiveSimulator() {
                   ].map((m) => (
                     <button
                       key={m.id}
-                      onClick={() => setStethoscopeMode(m.id as any)}
+                      onClick={() => {
+                        setStethoscopeMode(m.id as any);
+                        setIsPlayingSound(false);
+                      }}
                       className={`w-full p-3.5 rounded-2xl text-left transition-all border ${
                         stethoscopeMode === m.id
                           ? "bg-slate-900 text-white border-slate-900 shadow-md"
@@ -352,7 +467,7 @@ export function InteractiveSimulator() {
                       <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full mt-2 inline-block ${
                         scleraTarget === "jaundice" ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                       }`}>
-                        {scleraTarget === "jaundice" ? "Bilirubin Icteric Alert" : "Healthy White Sclera"}
+                        {scleraTarget === "jaundice" ? "Hyperbilirubinemia (Jaundice)" : "Normative Scleral Index"}
                       </span>
                     </div>
                   </div>
@@ -361,33 +476,33 @@ export function InteractiveSimulator() {
 
               {/* Controls */}
               <div className="space-y-4 lg:col-span-5">
-                <div className="p-4 rounded-2xl bg-cyan-50/80 border border-cyan-100 text-xs">
-                  <p className="font-bold text-cyan-900 flex items-center gap-1.5 text-sm">
-                    <Info className="h-4 w-4 text-cyan-600" /> How It Works &bull; Optical Eye Biomarkers
+                <div className="p-4 rounded-2xl bg-sky-50/80 border border-sky-100 text-xs">
+                  <p className="font-bold text-sky-900 flex items-center gap-1.5 text-sm">
+                    <Info className="h-4 w-4 text-sky-600" /> How It Works &bull; Optical Colorimetry
                   </p>
                   <p className="mt-1.5 text-slate-600 leading-relaxed font-sans">
-                    The camera LED flash illuminates the palpebral conjunctiva (inside lower eyelid) or white sclera. The ISP measures capillary blood density to estimate hemoglobin levels and yellow-shift color indices.
+                    With flash illumination, the camera segments the lower eyelid inner conjunctiva and outer sclera, converting RGB values to CIE-L*a*b* space to detect microvascular pallor and bilirubin staining.
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   {[
-                    { id: "anemia", title: "🩸 Palpebral Conjunctiva: Acute Anemia Pallor", desc: "Low capillary red channel density" },
-                    { id: "jaundice", title: "🟡 Sclera: Jaundice & Hepatitis Yellow Shift", desc: "Bilirubin shift on CIELAB b* axis" },
-                    { id: "healthy", title: "✅ Normal Physiological Biomarkers", desc: "Normal micro-vascular density" },
-                  ].map((m) => (
+                    { id: "anemia", title: "🩸 Severe Anemia Palpebral Pallor (Hb < 8.5)", desc: "Conjunctival microvascular desaturation" },
+                    { id: "jaundice", title: "🟡 Jaundice / Hepatitis Scleral Icterus (+14.2)", desc: "Bilirubin yellow hue deposition" },
+                    { id: "healthy", title: "✅ Healthy Baseline Controls", desc: "Optimal erythrocyte capillary density" },
+                  ].map((s) => (
                     <button
-                      key={m.id}
-                      onClick={() => setScleraTarget(m.id as any)}
+                      key={s.id}
+                      onClick={() => setScleraTarget(s.id as any)}
                       className={`w-full p-3.5 rounded-2xl text-left transition-all border ${
-                        scleraTarget === m.id
+                        scleraTarget === s.id
                           ? "bg-slate-900 text-white border-slate-900 shadow-md"
-                          : "bg-white text-slate-800 border-slate-200 hover:border-cyan-300"
+                          : "bg-white text-slate-800 border-slate-200 hover:border-sky-300"
                       }`}
                     >
-                      <p className="text-xs font-bold">{m.title}</p>
-                      <p className={`text-[11px] mt-0.5 ${scleraTarget === m.id ? "text-slate-300" : "text-slate-500"}`}>
-                        {m.desc}
+                      <p className="text-xs font-bold">{s.title}</p>
+                      <p className={`text-[11px] mt-0.5 ${scleraTarget === s.id ? "text-slate-300" : "text-slate-500"}`}>
+                        {s.desc}
                       </p>
                     </button>
                   ))}
@@ -396,42 +511,48 @@ export function InteractiveSimulator() {
             </div>
           )}
 
-          {/* TAB 3: CAMERA PPG (PULSE & SPO2) */}
+          {/* TAB 3: CONTACTLESS CAMERA PPG */}
           {activeTab === "ppg" && (
             <div className="grid gap-8 lg:grid-cols-12 items-center">
               <div className="lg:col-span-7">
-                <div className="rounded-2xl bg-slate-950 p-6 text-white border border-slate-800 shadow-xl text-center">
-                  <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4 text-xs font-mono">
-                    <span className="text-rose-400 font-bold">✦ PHOTOPLETHYSMOGRAPHY (PPG)</span>
-                    <span className="text-slate-400">100% OFFLINE</span>
+                <div className="rounded-2xl bg-slate-950 p-6 text-white border border-slate-800 shadow-xl space-y-4">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-3 text-xs font-mono">
+                    <span className="text-rose-400 font-bold flex items-center gap-1.5">
+                      <span className={`h-2 w-2 rounded-full bg-rose-500 ${isPpgScanning ? "animate-ping" : ""}`} />
+                      CHROMINANCE-BASED PPG
+                    </span>
+                    <span className="text-slate-400">10-SECOND AIR-GAPPED VITAL SCAN</span>
                   </div>
 
-                  <div className="flex flex-col items-center justify-center py-2">
-                    <div className={`relative flex h-20 w-20 items-center justify-center rounded-3xl border-2 ${
-                      isPpgScanning ? "border-rose-500 animate-spin bg-rose-500/10" : "border-rose-500/40 bg-rose-500/10"
-                    }`}>
-                      <HeartPulse className={`h-10 w-10 ${isPpgScanning ? "text-rose-400 animate-pulse" : "text-rose-400"}`} />
+                  {isPpgScanning && (
+                    <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-rose-500 to-sky-500 h-full transition-all duration-200"
+                        style={{ width: `${ppgProgress}%` }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-2xl bg-slate-900 p-4 border border-slate-800 text-center">
+                      <p className="text-[10px] font-mono text-slate-400 uppercase">HEART RATE</p>
+                      <p className="text-3xl font-mono font-extrabold text-white mt-1">
+                        {ppgBpm} <span className="text-xs text-rose-400 font-bold">BPM</span>
+                      </p>
                     </div>
 
-                    {isPpgScanning && (
-                      <div className="mt-4 w-60 bg-slate-800 rounded-full h-2 overflow-hidden">
-                        <div className="bg-gradient-to-r from-rose-500 to-cyan-400 h-full transition-all duration-200" style={{ width: `${ppgProgress}%` }} />
-                      </div>
-                    )}
+                    <div className="rounded-2xl bg-slate-900 p-4 border border-slate-800 text-center">
+                      <p className="text-[10px] font-mono text-slate-400 uppercase">BLOOD OXYGEN</p>
+                      <p className="text-3xl font-mono font-extrabold text-white mt-1">
+                        {ppgSpo2} <span className="text-xs text-sky-400 font-bold">%</span>
+                      </p>
+                    </div>
 
-                    <div className="mt-6 grid grid-cols-3 gap-3 w-full">
-                      <div className="rounded-2xl bg-slate-900 p-3 border border-slate-800">
-                        <p className="text-[9.5px] font-mono text-slate-400 uppercase">HEART RATE</p>
-                        <p className="text-2xl font-mono font-extrabold text-white mt-0.5">{ppgBpm} <span className="text-xs text-rose-400">BPM</span></p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-900 p-3 border border-slate-800">
-                        <p className="text-[9.5px] font-mono text-slate-400 uppercase">SpO2 OXYGEN</p>
-                        <p className="text-2xl font-mono font-extrabold text-cyan-400 mt-0.5">{ppgSpo2}%</p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-900 p-3 border border-slate-800">
-                        <p className="text-[9.5px] font-mono text-slate-400 uppercase">HRV STRESS</p>
-                        <p className="text-2xl font-mono font-extrabold text-slate-200 mt-0.5">{ppgHrv} <span className="text-xs text-slate-400">ms</span></p>
-                      </div>
+                    <div className="rounded-2xl bg-slate-900 p-4 border border-slate-800 text-center">
+                      <p className="text-[10px] font-mono text-slate-400 uppercase">HRV INDEX</p>
+                      <p className="text-3xl font-mono font-extrabold text-white mt-1">
+                        {ppgHrv} <span className="text-xs text-emerald-400 font-bold">ms</span>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -439,152 +560,139 @@ export function InteractiveSimulator() {
 
               {/* Controls */}
               <div className="space-y-4 lg:col-span-5">
-                <div className="p-4 rounded-2xl bg-rose-50/80 border border-rose-100 text-xs">
-                  <p className="font-bold text-rose-900 flex items-center gap-1.5 text-sm">
-                    <Info className="h-4 w-4 text-rose-600" /> How It Works &bull; Camera PPG Vitals
+                <div className="p-4 rounded-2xl bg-sky-50/80 border border-sky-100 text-xs">
+                  <p className="font-bold text-sky-900 flex items-center gap-1.5 text-sm">
+                    <Info className="h-4 w-4 text-sky-600" /> How It Works &bull; Camera PPG
                   </p>
                   <p className="mt-1.5 text-slate-600 leading-relaxed font-sans">
-                    The camera lens detects subtle skin micro-color variations created by pulsatile blood flow. The app extracts pulse waveform periodicity and oxygenated vs deoxygenated hemoglobin ratios.
+                    Measures microscopic blood volume pulses beneath the skin through RGB channel chrominance fluctuation analysis, extracting real-time vitals with zero external sensor hardware.
                   </p>
                 </div>
 
                 <button
-                  disabled={isPpgScanning}
                   onClick={startPpgScan}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-rose-500/25 hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-50"
+                  disabled={isPpgScanning}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-sky-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-rose-500/20 active:scale-95 transition-all disabled:opacity-50"
                 >
-                  {isPpgScanning ? "Measuring Capillary Pulse Stream..." : "▶ Start 10-Second Vitals Scan"}
+                  {isPpgScanning ? `Acquiring Hemoglobin Pulses (${ppgProgress}%)...` : "Start 10-Second Camera PPG Scan"}
                 </button>
               </div>
             </div>
           )}
 
-          {/* ============================================================== */}
-          {/* TAB 4: JAN AUSHADHI PRICE-COMPARISON DRAWER & CDSCO CHECKER     */}
-          {/* ============================================================== */}
+          {/* TAB 4: PHARMA SAVINGS & CDSCO SAFETY SHIELD */}
           {activeTab === "pharma" && (
             <div className="grid gap-8 lg:grid-cols-12 items-center">
               <div className="lg:col-span-7">
-                {/* 5D Interactive Price Comparison Card */}
-                <div className="rounded-3xl bg-slate-950 p-6 text-white border border-slate-800 shadow-xl space-y-4">
-                  <div className="flex justify-between items-center border-b border-slate-800 pb-3 text-xs font-mono">
-                    <span className="text-sky-400 font-bold flex items-center gap-1.5">
-                      <TrendingDown className="h-4 w-4 text-emerald-400" />
-                      JAN AUSHADHI GENERIC COST SAVER
+                <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-md space-y-4">
+                  <div className="flex justify-between items-center border-b pb-3 text-xs">
+                    <span className="font-mono font-bold text-sky-800">
+                      PRADHAN MANTRI JAN AUSHADHI KENDRA DATABASE
                     </span>
-                    <span className="text-slate-400">OFFLINE ROOM SQLITE</span>
-                  </div>
-
-                  {/* Comparison Row */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-2xl bg-slate-900 p-4 border border-rose-500/30">
-                      <span className="text-[10px] font-mono text-rose-400 uppercase">BRANDED PRESCRIPTION</span>
-                      <p className="text-base font-bold text-white mt-1">{currentPharma.brandName}</p>
-                      <p className="text-[11px] text-slate-400 line-clamp-1">{currentPharma.category}</p>
-                      <div className="mt-3 flex items-baseline gap-1">
-                        <span className="font-mono text-2xl font-black text-rose-400">₹{totalBrand}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">({pharmaQty} pack)</span>
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl bg-slate-900 p-4 border border-emerald-500/50 relative overflow-hidden">
-                      <div className="absolute top-2 right-2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[9.5px] font-black px-2 py-0.5">
-                        {currentPharma.savingsPct} SAVINGS
-                      </div>
-                      <span className="text-[10px] font-mono text-emerald-400 uppercase">JAN AUSHADHI GENERIC</span>
-                      <p className="text-base font-bold text-emerald-300 mt-1">{currentPharma.genericName}</p>
-                      <p className="text-[11px] text-slate-400">Identical Active Salt</p>
-                      <div className="mt-3 flex items-baseline gap-1">
-                        <span className="font-mono text-2xl font-black text-emerald-400">₹{totalGeneric}</span>
-                        <span className="text-[10px] text-emerald-300 font-mono font-bold">(Save ₹{totalSavings})</span>
-                      </div>
+                    <div className="flex items-center gap-1">
+                      {(["en", "hi", "kn"] as const).map((lang) => (
+                        <button
+                          key={lang}
+                          onClick={() => {
+                            setPharmaLang(lang);
+                            speakPharmaGuidance(lang);
+                          }}
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-all ${
+                            pharmaLang === lang ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {lang}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => speakPharmaGuidance(pharmaLang)}
+                        className="p-1 rounded bg-sky-50 text-sky-700 hover:bg-sky-100 ml-1"
+                        title="Read aloud"
+                      >
+                        <Volume2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
 
-                  {/* CDSCO Alert Banner (if applicable) */}
-                  {selectedPharma === "aspirin_warfarin" && (
-                    <div className="rounded-2xl p-4 bg-rose-950/60 border border-rose-500 text-rose-200 text-xs">
-                      <div className="flex items-center gap-2 font-bold text-sm">
-                        <ShieldAlert className="h-4 w-4 text-rose-400" />
-                        CRITICAL CDSCO CONTRAINDICATION: DUAL BLOOD THINNER
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase">Scanned Branded Medicine:</p>
+                    <h3 className="text-lg font-black text-slate-900">{currentPharma.brandName}</h3>
+                    <p className="text-xs text-sky-700 font-mono font-bold mt-0.5">
+                      Generic Salt: {currentPharma.genericName}
+                    </p>
+                  </div>
+
+                  {selectedPharma === "aspirin_warfarin" ? (
+                    <div className="rounded-2xl bg-rose-50 border border-rose-300 p-4 text-rose-900 flex items-start gap-3">
+                      <ShieldAlert className="h-6 w-6 text-rose-600 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-black text-sm">🚨 CDSCO CONTRAINDICATION: LETHAL HEMORRHAGE RISK</p>
+                        <p className="text-xs mt-1 leading-relaxed">
+                          Concurrent dosing of Aspirin (Anti-platelet) + Warfarin (Anticoagulant) increases gastric hemorrhage risk by 340%. Immediate doctor consultation mandatory before dispensing.
+                        </p>
                       </div>
-                      <p className="mt-1 text-[11px] leading-relaxed">
-                        {pharmaLang === "en"
-                          ? "WARNING: Concomitant use of Aspirin and Warfarin substantially multiplies internal hemorrhage risk. Do not dispense without physician approval."
-                          : pharmaLang === "hi"
-                          ? "चेतावनी: एस्पिरिन और वारफारिन को एक साथ लेने पर रक्तस्राव का गंभीर खतरा है। डॉक्टर की सलाह के बिना न लें।"
-                          : "ಎಚ್ಚರಿಕೆ: ಆಸ್ಪಿರಿನ್ ಮತ್ತು ವಾರ್ಫಾರಿನ್ ಅನ್ನು ಒಟ್ಟಿಗೆ ತೆಗೆದುಕೊಳ್ಳಬೇಡಿ. ತೀವ್ರ ರಕ್ತಸ್ರಾವದ ಅಪಾಯವಿದೆ."}
-                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-3 text-center bg-slate-50 p-4 rounded-2xl border">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Commercial Price</p>
+                        <p className="text-lg font-black text-rose-600 line-through">₹{brandTotal}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Jan Aushadhi</p>
+                        <p className="text-lg font-black text-emerald-600">₹{genericTotal}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">You Save</p>
+                        <p className="text-lg font-black text-sky-600">₹{savingsTotal} ({currentPharma.savingsPct})</p>
+                      </div>
                     </div>
                   )}
 
-                  {/* Sliding Quantity Counter */}
-                  <div className="pt-2 flex items-center justify-between border-t border-slate-800 text-xs">
-                    <span className="text-slate-400 font-mono">Prescription Supply:</span>
-                    <div className="flex items-center gap-2">
-                      {[1, 3, 6].map((q) => (
-                        <button
-                          key={q}
-                          onClick={() => setPharmaQty(q)}
-                          className={`px-3 py-1 rounded-lg font-mono font-bold text-xs transition-all ${
-                            pharmaQty === q ? "bg-sky-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                          }`}
-                        >
-                          {q} {q === 1 ? "Month" : "Months"}
-                        </button>
-                      ))}
+                  {/* Quantity Slider */}
+                  <div className="space-y-1.5 pt-2">
+                    <div className="flex justify-between text-xs font-bold text-slate-700">
+                      <span>Prescription Supply Duration:</span>
+                      <span className="text-sky-700 font-black">{pharmaQty} Month ({pharmaQty * 30} Days)</span>
                     </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="6"
+                      value={pharmaQty}
+                      onChange={(e) => setPharmaQty(Number(e.target.value))}
+                      className="w-full accent-sky-500"
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Controls */}
-              <div className="space-y-4 lg:col-span-5">
-                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-100 text-xs">
-                  <p className="font-bold text-amber-900 flex items-center gap-1.5 text-sm">
-                    <Info className="h-4 w-4 text-amber-600" /> How It Works &bull; Jan Aushadhi &amp; CDSCO
-                  </p>
-                  <p className="mt-1.5 text-slate-600 leading-relaxed font-sans">
-                    The camera OCR scans branded blister packs. PulseEdge-OS maps the active chemical salt to government Jan Aushadhi generic equivalents, cutting medication expenses by up to 85% while checking CDSCO contraindication tables.
-                  </p>
-                </div>
+              <div className="space-y-3 lg:col-span-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Select Medicine Blister Test Case:
+                </p>
 
                 <div className="space-y-2">
                   {[
-                    { id: "augmentin", title: "💊 Augmentin 625 Duo (77% Cost Saver)", desc: "Antibiotic • ₹210 vs ₹48 generic" },
-                    { id: "lipitor", title: "💊 Lipitor 20mg (85% Cost Saver)", desc: "Cholesterol • ₹380 vs ₹54 generic" },
-                    { id: "glycomet", title: "💊 Glycomet 500 SR (80% Cost Saver)", desc: "Diabetes • ₹85 vs ₹16.5 generic" },
-                    { id: "aspirin_warfarin", title: "⚠️ Aspirin + Warfarin (CDSCO Warning)", desc: "Dangerous drug-drug interaction alert" },
-                  ].map((m) => (
+                    { id: "augmentin", title: "💊 Augmentin 625 Duo (77% Savings)", desc: "Amoxy-Clav Bacterial Respiratory" },
+                    { id: "lipitor", title: "💊 Lipitor 20mg (85% Savings)", desc: "Atorvastatin Statin Cardiovascular" },
+                    { id: "glycomet", title: "💊 Glycomet 500 SR (80% Savings)", desc: "Metformin Type-2 Diabetes" },
+                    { id: "aspirin_warfarin", title: "⚠️ Aspirin + Warfarin (Conflict Alert)", desc: "CDSCO Lethal Drug Interaction Shield" },
+                  ].map((p) => (
                     <button
-                      key={m.id}
-                      onClick={() => setSelectedPharma(m.id as any)}
+                      key={p.id}
+                      onClick={() => setSelectedPharma(p.id as any)}
                       className={`w-full p-3 rounded-2xl text-left transition-all border ${
-                        selectedPharma === m.id
+                        selectedPharma === p.id
                           ? "bg-slate-900 text-white border-slate-900 shadow-md"
-                          : "bg-white text-slate-800 border-slate-200 hover:border-amber-300"
+                          : "bg-white text-slate-800 border-slate-200 hover:border-sky-300"
                       }`}
                     >
-                      <p className="text-xs font-bold">{m.title}</p>
-                      <p className={`text-[11px] mt-0.5 ${selectedPharma === m.id ? "text-slate-300" : "text-slate-500"}`}>
-                        {m.desc}
+                      <p className="text-xs font-bold">{p.title}</p>
+                      <p className={`text-[11px] mt-0.5 ${selectedPharma === p.id ? "text-slate-300" : "text-slate-500"}`}>
+                        {p.desc}
                       </p>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Multilingual Speech Audio Selector */}
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="text-xs font-bold text-slate-500">Spoken Language:</span>
-                  {(["en", "hi", "kn"] as const).map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setPharmaLang(l)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold uppercase transition-all ${
-                        pharmaLang === l ? "bg-sky-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
-                    >
-                      {l === "en" ? "English" : l === "hi" ? "हिन्दी" : "ಕನ್ನಡ"}
                     </button>
                   ))}
                 </div>
@@ -592,9 +700,7 @@ export function InteractiveSimulator() {
             </div>
           )}
 
-          {/* ============================================================== */}
-          {/* TAB 5: GAZE & BREATH PUFF SELECTION (360 DWELL POINTER)        */}
-          {/* ============================================================== */}
+          {/* TAB 5: 60 FPS GAZE TRACKING & MICRO-GESTURES */}
           {activeTab === "gaze" && (
             <div className="grid gap-8 lg:grid-cols-12 items-center">
               <div className="lg:col-span-7">
@@ -605,31 +711,28 @@ export function InteractiveSimulator() {
                     const y = ((e.clientY - rect.top) / rect.height) * 100;
                     setGazePos({ x, y });
                   }}
-                  className="relative h-80 rounded-3xl bg-slate-950 p-6 overflow-hidden cursor-crosshair select-none border border-slate-800 shadow-xl"
+                  className="relative h-80 rounded-3xl bg-slate-950 p-4 overflow-hidden select-none cursor-crosshair border border-slate-800 shadow-xl"
                 >
-                  <div className="grid grid-cols-2 gap-4 h-full relative z-10">
+                  <div className="grid grid-cols-2 gap-4 h-full">
                     {[
-                      { id: "whatsapp", label: "💬 Message Doctor", sub: "WhatsApp Node" },
-                      { id: "vitals", label: "💓 Check PPG Vitals", sub: "Camera Pulse" },
-                      { id: "stetho", label: "🩺 Stethoscope Scan", sub: "Audio FFT" },
-                      { id: "sos", label: "🚨 Emergency Caregiver SOS", sub: "OriginOS Bridge" },
+                      { id: "call_caregiver", label: "📞 Call Caregiver", color: "bg-rose-900/60 border-rose-500/50" },
+                      { id: "read_screen", label: "🔊 Read Screen TTS", color: "bg-sky-900/60 border-sky-500/50" },
+                      { id: "turn_lights", label: "💡 Turn On Lights", color: "bg-amber-900/60 border-amber-500/50" },
+                      { id: "play_music", label: "🎵 Play Music (Spotify)", color: "bg-emerald-900/60 border-emerald-500/50" },
                     ].map((btn) => (
                       <div
                         key={btn.id}
                         onMouseEnter={() => setActiveButton(btn.label)}
                         onMouseLeave={() => setActiveButton(null)}
-                        className={`rounded-2xl border p-4 flex flex-col justify-center items-center text-center transition-all ${
-                          activeButton === btn.label
-                            ? "border-sky-400 bg-sky-500 text-white scale-[1.02] shadow-lg shadow-sky-500/25"
-                            : "border-slate-800 bg-slate-900 text-slate-200 hover:border-slate-700"
+                        className={`rounded-2xl border p-4 flex flex-col justify-center items-center text-center font-bold text-white transition-all ${btn.color} ${
+                          activeButton === btn.label ? "scale-95 ring-2 ring-sky-400 bg-sky-900/90" : ""
                         }`}
                       >
-                        <p className="font-bold text-sm">{btn.label}</p>
-                        <p className="text-[10px] font-mono mt-1 opacity-80">{btn.sub}</p>
+                        <span className="text-sm">{btn.label}</span>
                         {activeButton === btn.label && (
-                          <div className="mt-2 w-full bg-white/20 rounded-full h-1.5 overflow-hidden">
+                          <div className="mt-2 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                             <div
-                              className="bg-white h-full transition-all duration-100"
+                              className="bg-sky-400 h-full transition-all duration-100"
                               style={{ width: `${dwellProgress}%` }}
                             />
                           </div>
@@ -638,56 +741,46 @@ export function InteractiveSimulator() {
                     ))}
                   </div>
 
-                  {/* 360-Degree Floating Gaze Pointer with Radial Timer */}
+                  {/* Iris Gaze Pointer */}
                   <div
-                    className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-75"
-                    style={{ left: `${gazePos.x}%`, top: `${gazePos.y}%`, width: 48, height: 48 }}
+                    className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-cyan-400 bg-cyan-400/20 shadow-lg shadow-cyan-400/50 transition-all duration-75 flex items-center justify-center"
+                    style={{
+                      left: `${gazePos.x}%`,
+                      top: `${gazePos.y}%`,
+                      width: "48px",
+                      height: "48px",
+                    }}
                   >
-                    <svg className="w-12 h-12 transform -rotate-90">
-                      <circle cx="24" cy="24" r="18" stroke="rgba(255,255,255,0.2)" strokeWidth="3" fill="transparent" />
-                      <circle
-                        cx="24"
-                        cy="24"
-                        r="18"
-                        stroke="#0ea5e9"
-                        strokeWidth="3"
-                        strokeDasharray="113"
-                        strokeDashoffset={113 - (113 * dwellProgress) / 100}
-                        strokeLinecap="round"
-                        fill="transparent"
-                      />
-                    </svg>
-                    <div className="absolute h-2.5 w-2.5 rounded-full bg-sky-400 shadow-lg shadow-sky-400" />
+                    <div className="h-2 w-2 rounded-full bg-cyan-300 animate-ping" />
                   </div>
                 </div>
-                <p className="mt-2 text-xs font-mono text-sky-600">✦ Hover inside viewport to simulate 60 FPS iris gaze dwell selection.</p>
               </div>
 
-              {/* Gesture Controls */}
+              {/* Controls */}
               <div className="space-y-4 lg:col-span-5">
-                <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-100 text-xs">
-                  <p className="font-bold text-indigo-900 flex items-center gap-1.5 text-sm">
-                    <Info className="h-4 w-4 text-indigo-600" /> How It Works &bull; 60 FPS Neural Micro-Gestures
+                <div className="p-4 rounded-2xl bg-sky-50/80 border border-sky-100 text-xs">
+                  <p className="font-bold text-sky-900 flex items-center gap-1.5 text-sm">
+                    <Info className="h-4 w-4 text-sky-600" /> How It Works &bull; 60 FPS Head &amp; Gaze
                   </p>
                   <p className="mt-1.5 text-slate-600 leading-relaxed font-sans">
-                    The front camera tracks 468 facial mesh landmarks on the Snapdragon NPU. Intentional smiles, mouth opening, or acoustic breath puffs trigger synthetic taps and scrolls across any Android app.
+                    Runs 468 facial landmarks on the Snapdragon NPU to track head pose and iris gaze coordinates, executing dwell-clicks and micro-gestures with zero touch.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => handleGestureClick("smile")}
                     className="p-3 rounded-2xl bg-white border border-slate-200 text-left hover:border-sky-400 hover:bg-sky-50 transition-all shadow-sm"
                   >
-                    <p className="font-bold text-xs">😃 Smile</p>
-                    <p className="text-[10px] text-slate-500">Primary Click Trigger</p>
+                    <p className="font-bold text-xs">😃 Smile Trigger</p>
+                    <p className="text-[10px] text-slate-500">Primary UI Click</p>
                   </button>
 
                   <button
                     onClick={() => handleGestureClick("mouth")}
                     className="p-3 rounded-2xl bg-white border border-slate-200 text-left hover:border-sky-400 hover:bg-sky-50 transition-all shadow-sm"
                   >
-                    <p className="font-bold text-xs">😮 Mouth Open</p>
+                    <p className="font-bold text-xs">😮 Mouth Expand</p>
                     <p className="text-[10px] text-slate-500">Downward Page Scroll</p>
                   </button>
 
@@ -695,8 +788,8 @@ export function InteractiveSimulator() {
                     onClick={() => handleGestureClick("puff")}
                     className="p-3 rounded-2xl bg-white border border-slate-200 text-left hover:border-emerald-400 hover:bg-emerald-50 transition-all shadow-sm"
                   >
-                    <p className="font-bold text-xs">💨 Breath / Puff</p>
-                    <p className="text-[10px] text-slate-500">Acoustic Breath Click</p>
+                    <p className="font-bold text-xs">💨 Breath/Puff</p>
+                    <p className="text-[10px] text-slate-500">Read Screen TTS</p>
                   </button>
 
                   <button
@@ -715,9 +808,7 @@ export function InteractiveSimulator() {
             </div>
           )}
 
-          {/* ============================================================== */}
-          {/* TAB 6: PARKINSON'S MOTOR TREMOR DAMPENING FILTER              */}
-          {/* ============================================================== */}
+          {/* TAB 6: PARKINSON'S MOTOR TREMOR DAMPENING FILTER */}
           {activeTab === "tremor" && (
             <div className="grid gap-8 lg:grid-cols-12 items-center">
               <div className="lg:col-span-7">
@@ -782,6 +873,77 @@ export function InteractiveSimulator() {
             </div>
           )}
         </div>
+
+        {/* --- CLINICAL REPORT EXPORT MODAL --- */}
+        {showReportModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+            <div className="max-w-lg w-full rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5">
+              <div className="flex items-center justify-between border-b pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-900 text-base">PulseEdge-OS Clinical Telemetry Report</h3>
+                    <p className="text-[11px] font-mono text-slate-500">Patient Diagnostic Record #IQOO-8942-RURAL</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowReportModal(false)}
+                  className="text-slate-400 hover:text-slate-700 text-lg font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="text-xs space-y-3 font-mono text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div className="flex justify-between border-b pb-2">
+                  <span>Timestamp:</span>
+                  <span className="font-bold text-slate-900">{new Date().toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span>Heart Rate (PPG):</span>
+                  <span className="font-bold text-slate-900">{ppgBpm} BPM (Normal Resting)</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span>Blood Oxygen (SpO2):</span>
+                  <span className="font-bold text-slate-900">{ppgSpo2}% SpO2</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span>Acoustic Stethoscope:</span>
+                  <span className="font-bold text-amber-700">{stethoscopeMode.toUpperCase()} (Peak 480 Hz)</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span>Sclera / Palpebral Biomarker:</span>
+                  <span className="font-bold text-slate-900">{scleraTarget.toUpperCase()}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span>Jan Aushadhi Generic Match:</span>
+                  <span className="font-bold text-emerald-700">{currentPharma.genericName}</span>
+                </div>
+                <div className="flex justify-between text-slate-500">
+                  <span>Edge Compute Engine:</span>
+                  <span className="font-bold text-sky-700">Snapdragon 8 Gen NPU (100% Air-Gapped)</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => window.print()}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-sky-500 py-3 text-xs font-black text-white hover:bg-sky-600 shadow-md shadow-sky-500/20 active:scale-95 transition-all"
+                >
+                  <Printer className="h-4 w-4" /> Print / Save Diagnostic PDF
+                </button>
+                <button
+                  onClick={() => setShowReportModal(false)}
+                  className="rounded-2xl border border-slate-300 px-5 py-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
