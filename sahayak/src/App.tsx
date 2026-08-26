@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LogOut, LogIn, User as UserIcon, X, Smartphone, Globe, Cpu, ShieldCheck } from 'lucide-react';
+import { LogOut, LogIn, User as UserIcon, X, Smartphone, Globe } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 // Firebase
@@ -22,6 +22,9 @@ import { HelpDesk } from './components/HelpDesk';
 import { Logo } from './components/Logo';
 import { DiagnosticsComponent } from './components/DiagnosticsComponent';
 import { CaregiverDashboard } from './components/CaregiverDashboard';
+import { HumanOnboardingWizard } from './components/HumanOnboardingWizard';
+import { EmergencySosModal } from './components/EmergencySosModal';
+import { SupportedLangCode } from './utils/languageDict';
 
 // Hooks
 import { useLocalAI } from './hooks/useLocalAI';
@@ -39,6 +42,10 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showEmergencySos, setShowEmergencySos] = useState(false);
+  const [appLanguage, setAppLanguage] = useState<SupportedLangCode>('hi');
+  const [seniorMode, setSeniorMode] = useState(false);
   
   // History refresh trigger
   const [refreshHistory, setRefreshHistory] = useState(0);
@@ -130,28 +137,43 @@ function App() {
 
   return (
     <div className="app-container min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/30 to-slate-100 text-slate-900 p-4 font-sans max-w-5xl mx-auto flex flex-col gap-6 antialiased overflow-x-hidden">
-      {/* Top Telemetry HUD Pill */}
-      <div className="flex items-center justify-between gap-2 rounded-full border border-white/90 bg-white/85 px-4 py-2 shadow-sm backdrop-blur-xl">
+      {/* Top Telemetry HUD Pill & Human Action Bar */}
+      <div className="flex items-center justify-between gap-2 rounded-3xl border border-white/90 bg-white/85 px-4 py-2.5 shadow-sm backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <Logo showText={true} size={36} />
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-slate-700 font-mono">
-          <span className="flex items-center gap-1 text-sky-700">
-            <Cpu className="h-3 w-3" /> Snapdragon NPU: 60 FPS
-          </span>
-          <span className="text-slate-300">&bull;</span>
-          <span className="flex items-center gap-1 text-emerald-700">
-            <ShieldCheck className="h-3 w-3" /> 100% Air-Gapped
-          </span>
-          <span className="text-slate-300">&bull;</span>
-          <span className="flex items-center gap-1 text-indigo-700">
-            <Smartphone className="h-3 w-3" /> OriginOS Ready
-          </span>
-        </div>
-
-        {/* Profile / Auth Button */}
         <div className="flex items-center gap-2">
+          {/* Emergency SOS Panic Button */}
+          <button
+            onClick={() => setShowEmergencySos(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-black uppercase tracking-wider shadow-md shadow-rose-600/30 active:scale-95 transition-all animate-pulse"
+          >
+            <span>🚨</span>
+            <span>Emergency SOS</span>
+          </button>
+
+          {/* Setup / Guided Wizard */}
+          <button
+            onClick={() => setShowOnboarding(true)}
+            className="hidden sm:flex items-center gap-1 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 rounded-full text-xs font-bold border border-sky-200"
+          >
+            <span>❓</span>
+            <span>Guide</span>
+          </button>
+
+          {/* Senior / Tremor View Toggle */}
+          <button
+            onClick={() => setSeniorMode(!seniorMode)}
+            className={`hidden md:flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+              seniorMode ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-slate-50 text-slate-700 border-slate-200'
+            }`}
+          >
+            <span>👴</span>
+            <span>{seniorMode ? 'Senior: ON' : 'Senior: OFF'}</span>
+          </button>
+
+          {/* Profile / Auth Button */}
           {user ? (
             <div className="flex items-center gap-2 bg-slate-100 p-1.5 pr-3 rounded-full border border-slate-200">
               {user.photoURL ? (
@@ -173,7 +195,7 @@ function App() {
           ) : (
             <button 
               onClick={() => setIsAuthOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-sky-500 to-cyan-500 text-white rounded-full text-xs font-black shadow-md shadow-sky-500/20 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-xs font-black shadow active:scale-95 transition-all"
             >
               <LogIn className="w-3.5 h-3.5" />
               Sign In
@@ -314,6 +336,27 @@ function App() {
            {isDemoMode ? '📡 Doctor Station ON' : '📡 Doctor Station OFF'}
          </button>
       </div>
+
+      {/* Human Onboarding Guided Wizard Modal */}
+      {showOnboarding && (
+        <HumanOnboardingWizard
+          onComplete={({ lang, primaryMode, seniorMode: senior }) => {
+            setAppLanguage(lang);
+            setCurrentMode(primaryMode);
+            setSeniorMode(senior);
+            setShowOnboarding(false);
+          }}
+          onClose={() => setShowOnboarding(false)}
+        />
+      )}
+
+      {/* Emergency SOS Distress Modal */}
+      {showEmergencySos && (
+        <EmergencySosModal
+          lang={appLanguage}
+          onClose={() => setShowEmergencySos(false)}
+        />
+      )}
     </div>
   );
 }

@@ -10,13 +10,19 @@ import {
   Sliders,
   Sun,
   Mic,
+  HelpCircle,
+  HeartPulse,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { HumanAnatomyGuide } from './HumanAnatomyGuide';
+import { SupportedLangCode } from '../utils/languageDict';
 
 type DiagnosticTab = 'fft' | 'sclera' | 'ppg' | 'tremor';
 
 export function DiagnosticsComponent() {
   const [activeTab, setActiveTab] = useState<DiagnosticTab>('fft');
+  const [activeGuide, setActiveGuide] = useState<'stethoscope' | 'sclera' | 'ppg' | null>(null);
+  const [humanLang] = useState<SupportedLangCode>('hi');
 
   // --- 1. Acoustic Stethoscope State & SNR Environment Checker ---
   const [stethMode, setStethMode] = useState<'wheeze' | 'crackle' | 'normal'>('wheeze');
@@ -246,6 +252,32 @@ export function DiagnosticsComponent() {
       {/* ============================================================== */}
       {activeTab === 'fft' && (
         <div className="space-y-4">
+          {/* Human Placement Guide & Traffic Light Summary Banner */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-sky-50 border border-sky-200">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-sky-500 text-white">
+                <Stethoscope className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-sky-950">
+                  Acoustic Lung & Breath Stethoscope
+                </h4>
+                <p className="text-[11px] text-slate-600">
+                  {stethMode === 'normal' && '🟢 सब ठीक है: फेफड़े साफ और स्वस्थ हैं (Normal Vesicular).'}
+                  {stethMode === 'wheeze' && '🟡 सावधानी: हल्की घरघराहट (Bronchial Wheeze). इनहेलर लें।'}
+                  {stethMode === 'crackle' && '🔴 डॉक्टर से मिलें: निमोनिया/कफ के संकेत (Crackle Sound).'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveGuide('stethoscope')}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-sky-100 text-sky-800 text-xs font-bold border border-sky-300 shadow-sm transition-all active:scale-95 shrink-0"
+            >
+              <HelpCircle className="h-4 w-4 text-sky-600" />
+              <span>How to Hold Phone on Chest</span>
+            </button>
+          </div>
+
           {/* Signal-to-Noise Ratio (SNR) Environmental Noise Checker */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 text-white text-xs font-mono border border-slate-800">
             <div className="flex items-center gap-2">
@@ -357,6 +389,32 @@ export function DiagnosticsComponent() {
       {/* ============================================================== */}
       {activeTab === 'sclera' && (
         <div className="space-y-4">
+          {/* Human Placement Guide & Traffic Light Summary Banner */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-sky-50 border border-sky-200">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-sky-500 text-white">
+                <Sun className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-sky-950">
+                  Inner-Eyelid &amp; Sclera Anemia Screening
+                </h4>
+                <p className="text-[11px] text-slate-600">
+                  {scleraMode === 'healthy' && '🟢 सब ठीक है: हीमोग्लोबिन स्तर सामान्य है (Healthy Capillary Blood).'}
+                  {scleraMode === 'anemia' && '🔴 खून की कमी (Anemia): निचली पलक में पीलापन (Hb < 8.5 g/dL). आयरन जांच करवाएं।'}
+                  {scleraMode === 'jaundice' && '🟡 पीलिया (Jaundice): आंख में पीलापन (+14.2 Δb*). लिवर टेस्ट करवाएं।'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveGuide('sclera')}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-sky-100 text-sky-800 text-xs font-bold border border-sky-300 shadow-sm transition-all active:scale-95 shrink-0"
+            >
+              <HelpCircle className="h-4 w-4 text-sky-600" />
+              <span>How to Show Lower Eyelid</span>
+            </button>
+          </div>
+
           {/* Ambient Lighting & White-Balance Calibration Bar */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 text-white text-xs font-mono border border-slate-800">
             <div className="flex items-center gap-2">
@@ -429,6 +487,32 @@ export function DiagnosticsComponent() {
       {/* ============================================================== */}
       {activeTab === 'ppg' && (
         <div className="space-y-4">
+          {/* Human Placement Guide & Traffic Light Summary Banner */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-sky-50 border border-sky-200">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-rose-500 text-white">
+                <HeartPulse className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-sky-950">
+                  Pulse, Blood Oxygen (SpO2) &amp; HRV Index
+                </h4>
+                <p className="text-[11px] text-slate-600">
+                  {bpm >= 60 && bpm <= 100 && spo2 >= 95
+                    ? '🟢 सब ठीक है: दिल की धड़कन (74 BPM) और ऑक्सीजन (98%) सामान्य है।'
+                    : '🟡 ध्यान दें: पल्स दर या ऑक्सीजन स्तर की दोबारा जांच करें।'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveGuide('ppg')}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-sky-100 text-sky-800 text-xs font-bold border border-sky-300 shadow-sm transition-all active:scale-95 shrink-0"
+            >
+              <HelpCircle className="h-4 w-4 text-rose-600" />
+              <span>How to Place Finger on Lens</span>
+            </button>
+          </div>
+
           {/* Fitzpatrick Melanin Invariance Selector */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 text-white text-xs font-mono border border-slate-800">
             <div className="flex items-center gap-2">
@@ -716,6 +800,18 @@ export function DiagnosticsComponent() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 3: HUMAN ANATOMY & PLACEMENT GUIDE                      */}
+      {/* ============================================================== */}
+      {activeGuide && (
+        <HumanAnatomyGuide
+          guideType={activeGuide}
+          lang={humanLang}
+          onReadyToStart={() => setActiveGuide(null)}
+          onClose={() => setActiveGuide(null)}
+        />
       )}
     </div>
   );
