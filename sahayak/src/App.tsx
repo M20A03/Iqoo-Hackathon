@@ -211,34 +211,44 @@ function App() {
             <DiagnosticsComponent />
           )}
 
-          {/* Mode 2: Medicine Strip & OCR Scanner */}
-          <div className="bg-white/80 rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-             <ScanComponent onTextExtracted={handleTextExtracted} />
-          </div>
+          {/* Mode 2: Medicine Strip & 50+ NLEM Jan Aushadhi Scanner */}
+          {(currentMode === 'pharma' || currentMode === 'hybrid') && (
+            <div className="bg-white/80 rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+               <ScanComponent onTextExtracted={handleTextExtracted} />
+            </div>
+          )}
 
-          {/* Voice Command Input */}
+          {/* Mode 3: Voice Command Input */}
           {(currentMode === 'voice' || currentMode === 'hybrid') && (
             <VoiceComponent onCommandParsed={handleCommand} />
           )}
 
-          {/* Face & Eye Trackers */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FaceTracker
-              isActive={currentMode === 'face' || currentMode === 'hybrid'}
-              onGesture={handleFaceGesture}
-            />
+          {/* Mode 4 & 5: Face & Eye Trackers */}
+          {(currentMode === 'face' || currentMode === 'eye' || currentMode === 'hybrid') && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {(currentMode === 'face' || currentMode === 'hybrid') && (
+                <FaceTracker
+                  isActive={true}
+                  onGesture={handleFaceGesture}
+                />
+              )}
 
-            <EyeTracking
-              isActive={currentMode === 'eye' || currentMode === 'hybrid'}
+              {(currentMode === 'eye' || currentMode === 'hybrid') && (
+                <EyeTracking
+                  isActive={true}
+                  onCommand={handleCommand}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Mode 6: Switch Control */}
+          {(currentMode === 'switch' || currentMode === 'hybrid') && (
+            <SwitchControl 
+              isActive={true} 
               onCommand={handleCommand}
             />
-          </div>
-
-          {/* Switch Control */}
-          <SwitchControl 
-            isActive={currentMode === 'switch' || currentMode === 'hybrid'} 
-            onCommand={handleCommand}
-          />
+          )}
         </div>
 
         {/* Right Column: AI Response, Telemetry & Status (5/12) */}

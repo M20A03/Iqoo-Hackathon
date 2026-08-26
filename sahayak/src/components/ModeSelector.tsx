@@ -1,5 +1,5 @@
-export type ControlMode = 'voice' | 'switch' | 'face' | 'eye' | 'hybrid' | 'diagnostics';
-import { Mic, ToggleRight, ScanFace, Eye, Combine, Stethoscope } from 'lucide-react';
+export type ControlMode = 'diagnostics' | 'pharma' | 'voice' | 'eye' | 'face' | 'switch' | 'hybrid';
+import { Mic, ToggleRight, ScanFace, Eye, Combine, Stethoscope, Pill } from 'lucide-react';
 
 interface ModeSelectorProps {
   currentMode: ControlMode;
@@ -7,17 +7,18 @@ interface ModeSelectorProps {
 }
 
 const modes = [
-  { id: 'diagnostics', label: 'Diagnostics', icon: <Stethoscope size={18} /> },
-  { id: 'voice', label: 'Voice', icon: <Mic size={18} /> },
+  { id: 'diagnostics', label: 'Vitals & Steth', icon: <Stethoscope size={18} /> },
+  { id: 'pharma', label: 'Jan Aushadhi', icon: <Pill size={18} /> },
+  { id: 'voice', label: 'Voice (10 Lang)', icon: <Mic size={18} /> },
   { id: 'eye', label: 'Eye Gaze', icon: <Eye size={18} /> },
-  { id: 'face', label: 'Face Click', icon: <ScanFace size={18} /> },
-  { id: 'switch', label: 'Switch', icon: <ToggleRight size={18} /> },
-  { id: 'hybrid', label: 'Hybrid', icon: <Combine size={18} /> },
+  { id: 'face', label: 'Face Gestures', icon: <ScanFace size={18} /> },
+  { id: 'switch', label: 'Switch Control', icon: <ToggleRight size={18} /> },
+  { id: 'hybrid', label: 'Hybrid Cockpit', icon: <Combine size={18} /> },
 ] as const;
 
 export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4" role="group" aria-label="Control Modes">
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4" role="group" aria-label="Control Modes">
       {modes.map((mode) => (
         <button
           key={mode.id}
@@ -35,7 +36,7 @@ export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
           }`}>
              {mode.icon}
           </div>
-          <span className="text-[10px] font-black uppercase tracking-wider leading-none">{mode.label}</span>
+          <span className="text-[10px] font-black uppercase tracking-wider leading-none text-center">{mode.label}</span>
         </button>
       ))}
     </div>

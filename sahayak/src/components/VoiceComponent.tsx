@@ -81,12 +81,29 @@ export function VoiceComponent({ onCommandParsed }: VoiceComponentProps) {
         </div>
       </div>
 
-      {/* Dynamic Native Examples */}
-      <div className="rounded-2xl bg-sky-50/70 p-3 border border-sky-100 text-xs text-slate-700">
-        <span className="font-bold text-sky-900">Try saying in {SUPPORTED_INDIAN_LANGUAGES[selectedLang].name}: </span>
-        <span className="font-medium text-slate-600">
-          {LANGUAGE_EXAMPLES[selectedLang].join(', ')}
-        </span>
+      {/* Dynamic Native Examples & Quick Test Chips */}
+      <div className="rounded-2xl bg-sky-50/70 p-3.5 border border-sky-100 text-xs text-slate-700 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-sky-900">
+            Click or say in {SUPPORTED_INDIAN_LANGUAGES[selectedLang].name}:
+          </span>
+          <span className="text-[10px] text-sky-600 font-mono font-bold">Offline Regex/NLP</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {LANGUAGE_EXAMPLES[selectedLang].map((sample, idx) => {
+            const cleanText = sample.replace(/"/g, '');
+            return (
+              <button
+                key={idx}
+                onClick={() => onCommandParsed(cleanText)}
+                className="px-3 py-1.5 rounded-xl bg-white border border-sky-200 text-sky-800 text-xs font-bold hover:bg-sky-50 hover:border-sky-400 active:scale-95 transition-all shadow-sm flex items-center gap-1.5"
+              >
+                <span>🗣️</span>
+                <span>{sample}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Primary Voice Mic Button */}

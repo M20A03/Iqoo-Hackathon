@@ -5,7 +5,7 @@ let db: IDBPDatabase | null = null;
 
 export interface SavedItem {
   id?: number;
-  type: 'scan' | 'command' | 'response';
+  type: 'scan' | 'command' | 'response' | 'prescription' | 'triage';
   content: string;
   timestamp: number;
 }
