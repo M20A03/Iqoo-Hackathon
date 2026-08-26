@@ -152,7 +152,7 @@ export function useFaceTracking(isActive: boolean) {
           eyebrowCount = 0;
         }
 
-        setGestures({
+        const nextGestures: FaceGestures = {
           smile: (mouthSmileLeft > 0.4 && mouthSmileRight > 0.4),
           eyebrowsRaised: isEyebrowsUp,
           mouthOpen: jawOpen > 0.35,
@@ -161,6 +161,23 @@ export function useFaceTracking(isActive: boolean) {
           blinkBoth: eyeBlinkLeft > 0.55 && eyeBlinkRight > 0.55,
           sustainedWinkLeft: winkStartTime !== 0 && (now - winkStartTime > 2000),
           doubleEyebrowRaise: doubleRaiseTriggered,
+        };
+
+        // Guard against unnecessary 60 FPS React re-renders
+        setGestures((prev) => {
+          if (
+            prev.smile === nextGestures.smile &&
+            prev.eyebrowsRaised === nextGestures.eyebrowsRaised &&
+            prev.mouthOpen === nextGestures.mouthOpen &&
+            prev.winkLeft === nextGestures.winkLeft &&
+            prev.winkRight === nextGestures.winkRight &&
+            prev.blinkBoth === nextGestures.blinkBoth &&
+            prev.sustainedWinkLeft === nextGestures.sustainedWinkLeft &&
+            prev.doubleEyebrowRaise === nextGestures.doubleEyebrowRaise
+          ) {
+            return prev;
+          }
+          return nextGestures;
         });
       }
 

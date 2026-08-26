@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { LogOut, LogIn, User as UserIcon, X, Smartphone, Globe } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
@@ -60,13 +60,38 @@ function App() {
   const [latestCommand, setLatestCommand] = useState<LocalAIResponse | null>(null);
   const [ocrText, setOcrText] = useState('');
 
+  // --- Process Voice / Switch / Eye Command ---
+  const handleCommand = useCallback(async (transcript: string) => {
+    const result = await processVoiceCommand(transcript, ocrText);
+    setLatestCommand(result);
+
+    // Save to local offline storage (IndexedDB)
+    try {
+      await saveItem({
+        type: 'command',
+        content: `Heard: "${transcript}" -> ${result.response}`,
+        timestamp: Date.now()
+      });
+      setRefreshHistory(prev => prev + 1);
+    } catch (e) {
+      console.warn("Storage warning:", e);
+    }
+
+    // Execute Deep Links (Spotify, WhatsApp, YouTube, etc.)
+    if (result.type === 'ACTION') {
+      executeDeepLink(result.response);
+    }
+  }, [ocrText, processVoiceCommand]);
+
   // --- Silent Speech (Breath/Click) ---
-  useSilentSpeech(currentMode === 'voice' || currentMode === 'hybrid', (type) => {
+  const handleSilentSpeech = useCallback((type: string) => {
     if (type === 'BREATH_CLICK') {
       speakText("Breath trigger detected.");
       handleCommand('read screen');
     }
-  });
+  }, [handleCommand]);
+
+  useSilentSpeech(currentMode === 'voice' || currentMode === 'hybrid', handleSilentSpeech);
 
   // --- Auth Listener ---
   useEffect(() => {
@@ -93,40 +118,17 @@ function App() {
   }, [currentMode]);
 
   // --- OCR Text Extracted ---
-  const handleTextExtracted = (text: string) => {
+  const handleTextExtracted = useCallback((text: string) => {
     setOcrText(text);
-  };
+  }, []);
 
-  // --- Process Voice / Switch / Eye Command ---
-  const handleCommand = async (transcript: string) => {
-    const result = await processVoiceCommand(transcript, ocrText);
-    setLatestCommand(result);
-
-    // Save to local offline storage (IndexedDB)
-    try {
-      await saveItem({
-        type: 'command',
-        content: `Heard: "${transcript}" -> ${result.response}`,
-        timestamp: Date.now()
-      });
-      setRefreshHistory(prev => prev + 1);
-    } catch (e) {
-      console.warn("Storage warning:", e);
-    }
-
-    // Execute Deep Links (Spotify, WhatsApp, YouTube, etc.)
-    if (result.type === 'ACTION') {
-      executeDeepLink(result.response);
-    }
-  };
-
-  const handleFaceGesture = (gesture: string) => {
+  const handleFaceGesture = useCallback((gesture: string) => {
     if (gesture === 'SMILE') {
       handleCommand('click focused');
     } else if (gesture === 'BLINK_LEFT') {
       handleCommand('scroll down');
     }
-  };
+  }, [handleCommand]);
 
   if (authLoading) {
     return (
