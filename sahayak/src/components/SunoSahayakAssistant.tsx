@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Mic,
   MicOff,
@@ -21,6 +21,99 @@ interface Message {
     medAdvice?: string;
   };
 }
+
+const WELCOME_MESSAGES: Record<SupportedLangCode, { text: string; steps: string[]; inputPlaceholder: string }> = {
+  en: {
+    text: 'Hello! I am "Suno Sahayak" — your personal multilingual health companion. You can ask me about any symptoms, generic medicines, or clinical triage in English.',
+    steps: [
+      '🗣️ Tap the microphone to speak your question',
+      '⚡ Or tap any common quick query chip above',
+      '🔊 Tap the speaker icon to listen to advice aloud in English',
+    ],
+    inputPlaceholder: 'Ask a symptom or medicine question in English...',
+  },
+  hi: {
+    text: 'नमस्ते! मैं "सुनो सहायक" (Suno Sahayak) हूँ — आपकी मातृभाषा में आपका व्यक्तिगत स्वास्थ्य साथी। आप किसी भी लक्षण या दवा के बारे में पूछ सकते हैं।',
+    steps: [
+      '🗣️ बोलकर पूछें (Tap mic to speak)',
+      '⚡ नीचे दिए गए सामान्य प्रश्नों पर टैप करें',
+      '🔊 किसी भी उत्तर को अपनी भाषा में सुनें',
+    ],
+    inputPlaceholder: 'अपनी भाषा में स्वास्थ्य प्रश्न लिखें या बोलें...',
+  },
+  kn: {
+    text: 'ನಮಸ್ಕಾರ! ನಾನು "ಸುನೋ ಸಹಾಯಕ" — ನಿಮ್ಮ ಮಾತೃಭಾಷೆಯಲ್ಲಿ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಆರೋಗ್ಯ ಸಹಾಯಕ. ನೀವು ಯಾವುದೇ ರೋಗಲಕ್ಷಣ ಅಥವಾ ಔಷಧಿಯ ಬಗ್ಗೆ ಕೇಳಬಹುದು.',
+    steps: [
+      '🗣️ ಮೈಕ್ ಟ್ಯಾಪ್ ಮಾಡಿ ಮಾತನಾಡಿ',
+      '⚡ ಮೇಲಿನ ಸಾಮಾನ್ಯ ಪ್ರಶ್ನೆಗಳ ಮೇಲೆ ಟ್ಯಾಪ್ ಮಾಡಿ',
+      '🔊 ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಉತ್ತರವನ್ನು ಆಲಿಸಿ',
+    ],
+    inputPlaceholder: 'ಕನ್ನಡದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ...',
+  },
+  ta: {
+    text: 'வணக்கம்! நான் "சுனோ சகாயக்" — உங்கள் தாய்மொழியில் உங்கள் தனிப்பட்ட சுகாதார வழிகாட்டி. ஏதேனும் அறிகுறிகள் அல்லது மருந்துகள் பற்றி கேட்கலாம்.',
+    steps: [
+      '🗣️ மைக் அழுத்தி தமிழில் பேசவும்',
+      '⚡ பொதுவான கேள்விகளைத் தட்டவும்',
+      '🔊 உங்கள் மொழியில் பதிலை கேட்கவும்',
+    ],
+    inputPlaceholder: 'தமிழில் உங்கள் கேள்வியைக் கேளுங்கள்...',
+  },
+  te: {
+    text: 'నమస్కారం! నేను "సునో సహాయక్" — మీ మాతృభాషలో మీ వ్యక్తిగత ఆరోగ్య సహాయకుడిని. మీరు ఏవైనా లక్షణాలు లేదా మందుల గురించి అడగవచ్చు.',
+    steps: [
+      '🗣️ మైక్ నొక్కి మాట్లాడండి',
+      '⚡ సాధారణ ప్రశ్నలపై నొక్కండి',
+      '🔊 మీ భాషలో సమాధానం వినండి',
+    ],
+    inputPlaceholder: 'తెలుగులో మీ ప్రశ్నను అడగండి...',
+  },
+  bn: {
+    text: 'নমস্কার! আমি "সুনো সহায়ক" — আপনার মাতৃভাষায় আপনার ব্যক্তিগত স্বাস্থ্য সহকারী। আপনি যেকোনো লক্ষণ বা ওষুধের বিষয়ে জিজ্ঞাসা করতে পারেন।',
+    steps: [
+      '🗣️ মাইক টিপে কথা বলুন',
+      '⚡ সাধারণ প্রশ্নের উপর ট্যাপ করুন',
+      '🔊 আপনার ভাষায় উত্তর শুনুন',
+    ],
+    inputPlaceholder: 'বাংলায় আপনার স্বাস্থ্য প্রশ্ন জিজ্ঞাসা করুন...',
+  },
+  mr: {
+    text: 'नमस्कार! मी "सुनो सहायक" आहे — आपल्या मातृभाषेतील आपला वैयक्तिक आरोग्य मार्गदर्शक. आपण कोणत्याही लक्षणाबद्दल किंवा औषधाबद्दल विचारू शकता.',
+    steps: [
+      '🗣️ माइक टॅप करून बोला',
+      '⚡ वरील सामान्य प्रश्नांवर टॅप करा',
+      '🔊 आपल्या भाषेत उत्तर ऐका',
+    ],
+    inputPlaceholder: 'मराठीत आपला प्रश्न विचारा...',
+  },
+  gu: {
+    text: 'નમસ્તે! હું "સુનો સહાયક" છું — તમારી માતૃભાષામાં તમારો વ્યક્તિગત આરોગ્ય સાથી. તમે કોઈપણ લક્ષણ અથવા દવા વિશે પૂછી શકો છો.',
+    steps: [
+      '🗣️ માઇક ટેપ કરીને બોલો',
+      '⚡ સામાન્ય પ્રશ્નો પર ટેપ કરો',
+      '🔊 તમારી ભાષામાં જવાબ સાંભળો',
+    ],
+    inputPlaceholder: 'ગુજરાતીમાં તમારો પ્રશ્ન પૂછો...',
+  },
+  ml: {
+    text: 'നമസ്കാരം! ഞാൻ "സുനോ സഹായക്" — നിങ്ങളുടെ മാതൃഭാഷയിലെ വ്യക്തിഗത ആരോഗ്യ സഹായി. നിങ്ങൾക്ക് ലക്ഷണങ്ങളെക്കുറിച്ചോ മരുന്നുകളെക്കുറിച്ചോ ചോദിക്കാം.',
+    steps: [
+      '🗣️ മൈക്ക് ടാപ്പ് ചെയ്ത് സംസാരിക്കുക',
+      '⚡ സാധാരണ ചോദ്യങ്ങളിൽ ടാപ്പ് ചെയ്യുക',
+      '🔊 നിങ്ങളുടെ ഭാഷയിൽ ഉത്തരം കേൾക്കുക',
+    ],
+    inputPlaceholder: 'മലയാളത്തിൽ ചോദ്യം ചോദിക്കുക...',
+  },
+  pa: {
+    text: 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ "ਸੁਣੋ ਸਹਾਇਕ" ਹਾਂ — ਤੁਹਾਡੀ ਮਾਤ੍ਰਭਾਸ਼ਾ ਵਿੱਚ ਤੁਹਾਡਾ ਨਿੱਜੀ ਸਿਹਤ ਸਾਥੀ। ਤੁਸੀਂ ਕਿਸੇ ਵੀ ਲੱਛਣ ਜਾਂ ਦਵਾਈ ਬਾਰੇ ਪੁੱਛ ਸਕਦੇ ਹੋ।',
+    steps: [
+      '🗣️ ਮਾਈਕ ਦਬਾ ਕੇ ਬੋਲੋ',
+      '⚡ ਆਮ ਸਵਾਲਾਂ ਤੇ ਟੈਪ ਕਰੋ',
+      '🔊 ਆਪਣੀ ਭਾਸ਼ਾ ਵਿੱਚ ਜਵਾਬ ਸੁਣੋ',
+    ],
+    inputPlaceholder: 'ਪੰਜਾਬੀ ਵਿੱਚ ਆਪਣਾ ਸਵਾਲ ਪੁੱਛੋ...',
+  },
+};
 
 const COMMON_QUERIES: Record<SupportedLangCode, { label: string; query: string; response: string; steps: string[] }[]> = {
   hi: [
@@ -345,28 +438,47 @@ const COMMON_QUERIES: Record<SupportedLangCode, { label: string; query: string; 
   ],
 };
 
-export function SunoSahayakAssistant() {
-  const [activeLang, setActiveLang] = useState<SupportedLangCode>('hi');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'm-welcome',
-      sender: 'assistant',
-      text: 'नमस्ते! मैं "सुनो सहायक" (Suno Sahayak) हूँ — आपकी मातृभाषा में आपका व्यक्तिगत स्वास्थ्य साथी। आप किसी भी लक्षण या दवा के बारे में पूछ सकते हैं।',
-      advice: {
-        severity: 'normal',
-        steps: [
-          '🗣️ बोलकर पूछें (Tap mic to speak)',
-          '⚡ नीचे दिए गए सामान्य प्रश्नों पर टैप करें',
-          '🔊 किसी भी उत्तर को अपनी भाषा में सुनें',
-        ],
-      },
-    },
-  ]);
+interface SunoSahayakAssistantProps {
+  currentLang?: SupportedLangCode;
+  onLanguageChange?: (lang: SupportedLangCode) => void;
+}
+
+export function SunoSahayakAssistant({ currentLang = 'hi', onLanguageChange }: SunoSahayakAssistantProps) {
+  const [activeLang, setActiveLang] = useState<SupportedLangCode>(currentLang);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [inputVal, setInputVal] = useState('');
 
+  // Sync with parent prop
+  useEffect(() => {
+    if (currentLang && currentLang !== activeLang) {
+      setActiveLang(currentLang);
+    }
+  }, [currentLang]);
+
+  // Regenerate welcome bubble whenever language changes
+  useEffect(() => {
+    const welcome = WELCOME_MESSAGES[activeLang] || WELCOME_MESSAGES.en;
+    setMessages([
+      {
+        id: `m-welcome-${activeLang}`,
+        sender: 'assistant',
+        text: welcome.text,
+        advice: {
+          severity: 'normal',
+          steps: welcome.steps,
+        },
+      },
+    ]);
+  }, [activeLang]);
+
   const currentQueries = COMMON_QUERIES[activeLang] || COMMON_QUERIES.hi;
   const currentLangConfig = SUPPORTED_INDIAN_LANGUAGES[activeLang] || SUPPORTED_INDIAN_LANGUAGES.hi;
+
+  const handleLangSelect = (code: SupportedLangCode) => {
+    setActiveLang(code);
+    onLanguageChange?.(code);
+  };
 
   const speakMessage = (text: string) => {
     if (!('speechSynthesis' in window)) return;
@@ -456,7 +568,7 @@ export function SunoSahayakAssistant() {
           {Object.entries(SUPPORTED_INDIAN_LANGUAGES).map(([code, l]) => (
             <button
               key={code}
-              onClick={() => setActiveLang(code as SupportedLangCode)}
+              onClick={() => handleLangSelect(code as SupportedLangCode)}
               className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
                 activeLang === code
                   ? 'bg-slate-900 text-white border-slate-900 shadow-sm'

@@ -189,6 +189,27 @@ function App() {
             <span>{seniorMode ? 'Senior: ON' : 'Senior: OFF'}</span>
           </button>
 
+          {/* Global Language Selector */}
+          <div className="flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 text-xs font-bold shadow-xs">
+            <span className="text-slate-500">🌐</span>
+            <select
+              value={appLanguage}
+              onChange={(e) => setAppLanguage(e.target.value as SupportedLangCode)}
+              className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+            >
+              <option value="en">English</option>
+              <option value="hi">हिंदी (Hindi)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+              <option value="bn">বাংলা (Bengali)</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="gu">ગુજરાતી (Gujarati)</option>
+              <option value="ml">മലയാളം (Malayalam)</option>
+              <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+            </select>
+          </div>
+
           {/* Profile / Auth Button */}
           {user ? (
             <div className="flex items-center gap-2 bg-slate-100 p-1.5 pr-3 rounded-full border border-slate-200">
@@ -262,7 +283,7 @@ function App() {
 
           {/* Mode 4: Suno Sahayak Multilingual Voice Assistant */}
           {currentMode === 'assistant' && (
-            <SunoSahayakAssistant />
+            <SunoSahayakAssistant currentLang={appLanguage} onLanguageChange={setAppLanguage} />
           )}
 
           {/* Mode 5: Voice Command Input */}
