@@ -186,10 +186,12 @@ export function useFaceTracking(isActive: boolean) {
         const outerEyeDist = Math.hypot(lm[263].x - lm[33].x, lm[263].y - lm[33].y);
         const smileRatio = outerEyeDist > 0 ? mouthWidth / outerEyeDist : 0;
 
-        // Unified Classification
+        // Unified Classification (Corrected for mirrored selfie camera perspective)
         const isMouthOpen = mar > 0.25 || jawOpen > 0.18;
-        const isWinkingLeft = (leftEAR < 0.19 && rightEAR > 0.23) || (eyeBlinkLeft > 0.45 && eyeBlinkRight < 0.25);
-        const isWinkingRight = (rightEAR < 0.19 && leftEAR > 0.23) || (eyeBlinkRight > 0.45 && eyeBlinkLeft < 0.25);
+        // User's physical left eye winking:
+        const isWinkingLeft = (rightEAR < 0.19 && leftEAR > 0.23) || (eyeBlinkRight > 0.45 && eyeBlinkLeft < 0.25);
+        // User's physical right eye winking:
+        const isWinkingRight = (leftEAR < 0.19 && rightEAR > 0.23) || (eyeBlinkLeft > 0.45 && eyeBlinkRight < 0.25);
         const isBlinkingBoth = (leftEAR < 0.18 && rightEAR < 0.18) || (eyeBlinkLeft > 0.5 && eyeBlinkRight > 0.5);
         const isSmile = smileRatio > 0.45 || (mouthSmileLeft > 0.35 && mouthSmileRight > 0.35);
         const isEyebrowsUp = browRatio > 0.052 || browOuterUpLeft > 0.38 || browOuterUpRight > 0.38;
