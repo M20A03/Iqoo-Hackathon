@@ -123,12 +123,12 @@ function App() {
   }, []);
 
   const handleFaceGesture = useCallback((gesture: string) => {
-    if (gesture === 'OPEN_MOUTH') {
+    if (gesture === 'HEAD_NOD_DOWN' || gesture === 'OPEN_MOUTH') {
       handleCommand('scroll down');
       window.scrollBy({ top: 400, behavior: 'smooth' });
       document.documentElement.scrollBy({ top: 400, behavior: 'smooth' });
       document.body.scrollBy({ top: 400, behavior: 'smooth' });
-    } else if (gesture === 'EYEBROWS_RAISED' || gesture === 'DOUBLE_EYEBROW_RAISE') {
+    } else if (gesture === 'HEAD_TILT_UP' || gesture === 'EYEBROWS_RAISED' || gesture === 'DOUBLE_EYEBROW_RAISE') {
       handleCommand('scroll up');
       window.scrollBy({ top: -400, behavior: 'smooth' });
       document.documentElement.scrollBy({ top: -400, behavior: 'smooth' });

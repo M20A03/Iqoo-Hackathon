@@ -4,6 +4,8 @@ import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 export interface FaceGestures {
   smile: boolean;
   eyebrowsRaised: boolean;
+  headNodDown: boolean;
+  headTiltUp: boolean;
   mouthOpen: boolean;
   winkLeft: boolean;
   winkRight: boolean;
@@ -28,6 +30,8 @@ export function useFaceTracking(isActive: boolean) {
   const [gestures, setGestures] = useState<FaceGestures>({
     smile: false,
     eyebrowsRaised: false,
+    headNodDown: false,
+    headTiltUp: false,
     mouthOpen: false,
     winkLeft: false,
     winkRight: false,
@@ -155,7 +159,7 @@ export function useFaceTracking(isActive: boolean) {
         browOuterUpRight = blendshapes.find(b => b.categoryName === 'browOuterUpRight')?.score || 0;
       }
 
-      // PRIMARY: 478 Landmark Direct Geometric Feature Extractor (EAR, MAR, Brow Ratio, Smile Ratio)
+      // PRIMARY: 478 Landmark Direct Geometric Feature Extractor
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const lm = results.faceLandmarks[0];
 
@@ -186,15 +190,24 @@ export function useFaceTracking(isActive: boolean) {
         const outerEyeDist = Math.hypot(lm[263].x - lm[33].x, lm[263].y - lm[33].y);
         const smileRatio = outerEyeDist > 0 ? mouthWidth / outerEyeDist : 0;
 
-        // Unified Classification (Corrected for mirrored selfie camera perspective)
-        const isMouthOpen = mar > 0.25 || jawOpen > 0.18;
-        // User's physical left eye winking:
+        // 6. HUMAN-CENTERED HEAD NOD PITCH (Nod Down to Scroll Down, Tilt Up to Scroll Up)
+        // Ear midline vs Nose tip y-offset
+        const earMidY = (lm[234].y + lm[454].y) / 2;
+        const nosePitchRatio = faceHeight > 0 ? (lm[1].y - earMidY) / faceHeight : 0;
+        
+        // Pitch triggers (Natural, zero-conflict with speech)
+        const isHeadNodDown = nosePitchRatio > 0.16; // Chin dipped down
+        const isHeadTiltUp = nosePitchRatio < -0.02;  // Chin lifted up
+
+        // Unified Classification
+        const isMouthOpen = mar > 0.32 || jawOpen > 0.28;
+        // User's physical left eye winking (mirrored for selfie display):
         const isWinkingLeft = (rightEAR < 0.19 && leftEAR > 0.23) || (eyeBlinkRight > 0.45 && eyeBlinkLeft < 0.25);
         // User's physical right eye winking:
         const isWinkingRight = (leftEAR < 0.19 && rightEAR > 0.23) || (eyeBlinkLeft > 0.45 && eyeBlinkRight < 0.25);
         const isBlinkingBoth = (leftEAR < 0.18 && rightEAR < 0.18) || (eyeBlinkLeft > 0.5 && eyeBlinkRight > 0.5);
-        const isSmile = smileRatio > 0.45 || (mouthSmileLeft > 0.35 && mouthSmileRight > 0.35);
-        const isEyebrowsUp = browRatio > 0.052 || browOuterUpLeft > 0.38 || browOuterUpRight > 0.38;
+        const isSmile = smileRatio > 0.46 || (mouthSmileLeft > 0.35 && mouthSmileRight > 0.35);
+        const isEyebrowsUp = browRatio > 0.054 || browOuterUpLeft > 0.38 || browOuterUpRight > 0.38;
 
         const now = performance.now();
 
@@ -221,6 +234,8 @@ export function useFaceTracking(isActive: boolean) {
         const nextGestures: FaceGestures = {
           smile: isSmile,
           eyebrowsRaised: isEyebrowsUp,
+          headNodDown: isHeadNodDown,
+          headTiltUp: isHeadTiltUp,
           mouthOpen: isMouthOpen,
           winkLeft: isWinkingLeft,
           winkRight: isWinkingRight,
@@ -234,6 +249,8 @@ export function useFaceTracking(isActive: boolean) {
           if (
             prev.smile === nextGestures.smile &&
             prev.eyebrowsRaised === nextGestures.eyebrowsRaised &&
+            prev.headNodDown === nextGestures.headNodDown &&
+            prev.headTiltUp === nextGestures.headTiltUp &&
             prev.mouthOpen === nextGestures.mouthOpen &&
             prev.winkLeft === nextGestures.winkLeft &&
             prev.winkRight === nextGestures.winkRight &&
@@ -276,6 +293,8 @@ export function useFaceTracking(isActive: boolean) {
       setGestures({
         smile: false,
         eyebrowsRaised: false,
+        headNodDown: false,
+        headTiltUp: false,
         mouthOpen: false,
         winkLeft: false,
         winkRight: false,

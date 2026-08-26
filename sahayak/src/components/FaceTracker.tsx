@@ -17,19 +17,17 @@ export function FaceTracker({ onGesture, isActive }: FaceTrackerProps) {
     if (!isActive) return;
 
     const now = Date.now();
-    if (now - lastGestureTime.current > 900) {
+    if (now - lastGestureTime.current > 850) {
       let triggered: string | null = null;
       let label: string | null = null;
 
-      if (gestures.mouthOpen) {
-        triggered = 'OPEN_MOUTH';
-        label = '👄 Mouth Open -> Scrolled Down';
-      } else if (gestures.sustainedWinkLeft) {
-        triggered = 'SUSTAINED_WINK_LEFT';
-        label = '😉 Sustained Wink -> Go Back';
-      } else if (gestures.doubleEyebrowRaise) {
-        triggered = 'DOUBLE_EYEBROW_RAISE';
-        label = '🤨 Double Eyebrows -> Scrolled Up';
+      // Priority 1: Human-Centric Head Nod (Zero speech conflict)
+      if (gestures.headNodDown) {
+        triggered = 'HEAD_NOD_DOWN';
+        label = '⬇️ Head Nod Down -> Scrolled Down';
+      } else if (gestures.headTiltUp) {
+        triggered = 'HEAD_TILT_UP';
+        label = '⬆️ Head Tilt Up -> Scrolled Up';
       } else if (gestures.winkLeft) {
         triggered = 'BLINK_LEFT';
         label = '😉 Left Wink -> Go Back';
@@ -39,6 +37,9 @@ export function FaceTracker({ onGesture, isActive }: FaceTrackerProps) {
       } else if (gestures.smile) {
         triggered = 'SMILE';
         label = '😊 Smile -> Click Element';
+      } else if (gestures.mouthOpen) {
+        triggered = 'OPEN_MOUTH';
+        label = '👄 Mouth Open -> Scrolled Down';
       } else if (gestures.eyebrowsRaised) {
         triggered = 'EYEBROWS_RAISED';
         label = '🤨 Eyebrows Raised -> Scrolled Up';
@@ -71,10 +72,10 @@ export function FaceTracker({ onGesture, isActive }: FaceTrackerProps) {
           </div>
           <div>
             <h3 className="text-base font-black text-slate-900 font-display">
-              Face Gesture Tracker
+              Human-Centric Face Gestures
             </h3>
             <p className="text-[10px] text-slate-400 font-mono">
-              {isMockMode ? 'Interactive Simulator' : 'MediaPipe Vision Active'}
+              {isMockMode ? 'Interactive Simulator' : 'Zero-Speech Conflict Active'}
             </p>
           </div>
         </div>
@@ -101,65 +102,78 @@ export function FaceTracker({ onGesture, isActive }: FaceTrackerProps) {
             playsInline 
             className="w-full h-full object-cover transform -scale-x-100"
           ></video>
-          {gestures.mouthOpen && (
+          {gestures.headNodDown && (
             <div className="absolute inset-0 bg-sky-500/20 border-4 border-sky-400 rounded-full flex items-center justify-center pointer-events-none">
               <span className="bg-slate-900 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-lg">
-                👄 MOUTH OPEN
+                ⬇️ HEAD NOD (SCROLL)
+              </span>
+            </div>
+          )}
+          {gestures.smile && (
+            <div className="absolute inset-0 bg-emerald-500/20 border-4 border-emerald-400 rounded-full flex items-center justify-center pointer-events-none">
+              <span className="bg-slate-900 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-lg">
+                😊 SMILE (CLICK)
               </span>
             </div>
           )}
         </div>
       ) : (
         <div className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center mb-2 flex flex-col gap-2.5">
-          <p className="text-[10px] text-sky-800 font-black uppercase tracking-wider">Test Drive Gesture Triggers</p>
+          <p className="text-[10px] text-sky-800 font-black uppercase tracking-wider">Test Drive Human Gestures</p>
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => triggerMockGesture('mouthOpen')}
+              onClick={() => triggerMockGesture('headNodDown')}
               className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
             >
-              👄 Open Mouth
+              ⬇️ Head Nod Down
+            </button>
+            <button
+              onClick={() => triggerMockGesture('headTiltUp')}
+              className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
+            >
+              ⬆️ Head Tilt Up
             </button>
             <button
               onClick={() => triggerMockGesture('smile')}
               className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
             >
-              😊 Smile
+              😊 Smile (Click)
             </button>
             <button
               onClick={() => triggerMockGesture('winkLeft')}
               className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
             >
-              😉 Left Wink
+              😉 Left Wink (Back)
             </button>
             <button
               onClick={() => triggerMockGesture('winkRight')}
-              className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
+              className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs col-span-2"
             >
-              😉 Right Wink
+              😉 Right Wink (Home)
             </button>
           </div>
         </div>
       )}
 
-      {/* Gesture Mapping Legend */}
+      {/* Human-Centered Gesture Mapping Legend */}
       <div className="mt-2 text-xs text-slate-600 space-y-1.5 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200 w-full font-medium">
-        <div className={`flex justify-between items-center text-[11px] p-1 rounded-lg transition-all ${gestures.mouthOpen ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
-          <span>👄 <b>Open Mouth</b></span>
+        <div className={`flex justify-between items-center text-[11px] p-1.5 rounded-lg transition-all ${gestures.headNodDown ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
+          <span>⬇️ <b>Head Nod Down (Chin Dip)</b></span>
           <span className="text-slate-500 font-mono">Scroll Down</span>
         </div>
-        <div className={`flex justify-between items-center text-[11px] p-1 rounded-lg transition-all ${gestures.smile ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
+        <div className={`flex justify-between items-center text-[11px] p-1.5 rounded-lg transition-all ${gestures.headTiltUp ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
+          <span>⬆️ <b>Head Tilt Up (Chin Lift)</b></span>
+          <span className="text-slate-500 font-mono">Scroll Up</span>
+        </div>
+        <div className={`flex justify-between items-center text-[11px] p-1.5 rounded-lg transition-all ${gestures.smile ? 'bg-emerald-100 text-emerald-900 font-bold' : ''}`}>
           <span>😊 <b>Smile</b></span>
           <span className="text-slate-500 font-mono">Simulate Click</span>
         </div>
-        <div className={`flex justify-between items-center text-[11px] p-1 rounded-lg transition-all ${gestures.eyebrowsRaised ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
-          <span>🤨 <b>Raise Eyebrows</b></span>
-          <span className="text-slate-500 font-mono">Scroll Up / Menu</span>
-        </div>
-        <div className={`flex justify-between items-center text-[11px] p-1 rounded-lg transition-all ${gestures.winkLeft ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
+        <div className={`flex justify-between items-center text-[11px] p-1.5 rounded-lg transition-all ${gestures.winkLeft ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
           <span>😉 <b>Left Wink</b></span>
           <span className="text-slate-500 font-mono">Go Back</span>
         </div>
-        <div className={`flex justify-between items-center text-[11px] p-1 rounded-lg transition-all ${gestures.winkRight ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
+        <div className={`flex justify-between items-center text-[11px] p-1.5 rounded-lg transition-all ${gestures.winkRight ? 'bg-sky-100 text-sky-900 font-bold' : ''}`}>
           <span>😉 <b>Right Wink</b></span>
           <span className="text-slate-500 font-mono">Home Screen</span>
         </div>
