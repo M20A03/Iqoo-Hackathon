@@ -117,30 +117,30 @@ export function UniversalAppLauncher() {
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full bg-white/90 border border-slate-200 rounded-3xl p-6 shadow-sm backdrop-blur-xl animate-in fade-in duration-300">
+    <div className="flex flex-col gap-4 w-full bg-white/90 border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm backdrop-blur-xl animate-in fade-in duration-300">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2.5 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="p-2 bg-sky-50 text-sky-600 rounded-2xl border border-sky-100 shrink-0">
             <Smartphone size={20} />
           </div>
-          <div>
-            <h2 className="text-base font-black text-slate-900 font-display">
-              Universal Hands-Free App Control
+          <div className="min-w-0">
+            <h2 className="text-sm sm:text-base font-black text-slate-900 font-display truncate">
+              Universal App Control
             </h2>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Controls <b>ANY</b> installed phone app via Voice, Gaze &amp; Gestures
+            <p className="text-[11px] text-slate-500 font-medium truncate">
+              Hands-Free automation for <b>ALL</b> phone apps
             </p>
           </div>
         </div>
 
-        <span className="hidden sm:flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-sky-800 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">
-          All Apps Supported
+        <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-sky-800 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+          Zero-Touch
         </span>
       </div>
 
-      {/* Grid of Universal App Triggers */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+      {/* Stack of Universal App Triggers */}
+      <div className="flex flex-col gap-2.5 w-full">
         {APPS_ECOSYSTEM.map((app) => {
           const Icon = app.icon;
           const isCurrent = lastLaunched === app.name;
@@ -148,38 +148,38 @@ export function UniversalAppLauncher() {
           return (
             <div
               key={app.id}
-              className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between gap-2 shadow-xs ${
+              className={`p-3 rounded-2xl border transition-all flex flex-col gap-2 shadow-xs w-full min-w-0 ${
                 isCurrent 
                   ? 'bg-sky-50 border-sky-300 ring-2 ring-sky-200' 
                   : 'bg-slate-50/80 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`p-2 rounded-xl ${app.bgLight} ${app.color}`}>
+              <div className="flex items-center justify-between gap-2 w-full min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className={`p-2 rounded-xl ${app.bgLight} ${app.color} shrink-0`}>
                     <Icon size={16} />
                   </div>
-                  <div>
-                    <h3 className="text-xs font-black text-slate-900">{app.name}</h3>
-                    <span className="text-[10px] text-slate-400 font-medium block">{app.category}</span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-xs font-black text-slate-900 truncate">{app.name}</h3>
+                    <span className="text-[10px] text-slate-400 font-medium block truncate">{app.category}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => handleLaunch(app)}
-                  className={`p-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 shadow-xs ${
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95 ${
                     isCurrent
-                      ? 'bg-emerald-500 text-white border-emerald-600'
-                      : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                      ? 'bg-emerald-600 text-white border-emerald-700'
+                      : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'
                   }`}
                   title={`Launch ${app.name}`}
                 >
-                  {isCurrent ? <CheckCircle2 size={13} /> : <Play size={13} />}
+                  {isCurrent ? <CheckCircle2 size={13} className="shrink-0" /> : <Play size={13} className="shrink-0" />}
                   <span className="text-[11px] font-black">{isCurrent ? 'Launched' : 'Launch'}</span>
                 </button>
               </div>
 
-              <div className="bg-white/90 px-2.5 py-1.5 rounded-xl border border-slate-200/80 text-[11px] text-slate-600 font-medium italic truncate">
+              <div className="bg-white/90 px-2.5 py-1 rounded-xl border border-slate-200/80 text-[10.5px] text-slate-600 font-medium italic truncate">
                 {app.sampleCommand}
               </div>
             </div>
@@ -188,11 +188,11 @@ export function UniversalAppLauncher() {
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500">
-        <span className="flex items-center gap-1">
-          <ExternalLink size={12} className="text-sky-600" />
-          <span>Intent dispatch via Android Accessibility &amp; Deep Links</span>
+        <span className="flex items-center gap-1 min-w-0 truncate">
+          <ExternalLink size={12} className="text-sky-600 shrink-0" />
+          <span className="truncate">Android Accessibility &amp; Deep Link Engine</span>
         </span>
-        <span className="font-mono font-bold text-slate-700">100% Zero-Touch</span>
+        <span className="font-mono font-bold text-slate-700 shrink-0 ml-2">100% Native</span>
       </div>
     </div>
   );
