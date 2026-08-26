@@ -151,14 +151,28 @@ export function useFaceTracking(isActive: boolean) {
         } else if (now - lastEyebrowTime > 800) {
           eyebrowCount = 0;
         }
+        // Dual blendshape + landmark calculation for high-accuracy mouth detection
+        let landmarkMouthRatio = 0;
+        if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+          const lm = results.faceLandmarks[0];
+          if (lm[14] && lm[13] && lm[152] && lm[10]) {
+            const verticalLipDist = Math.abs(lm[14].y - lm[13].y);
+            const faceHeight = Math.abs(lm[152].y - lm[10].y);
+            if (faceHeight > 0) {
+              landmarkMouthRatio = verticalLipDist / faceHeight;
+            }
+          }
+        }
+
+        const isMouthOpen = jawOpen > 0.18 || landmarkMouthRatio > 0.04;
 
         const nextGestures: FaceGestures = {
-          smile: (mouthSmileLeft > 0.4 && mouthSmileRight > 0.4),
+          smile: (mouthSmileLeft > 0.35 && mouthSmileRight > 0.35),
           eyebrowsRaised: isEyebrowsUp,
-          mouthOpen: jawOpen > 0.35,
+          mouthOpen: isMouthOpen,
           winkLeft: isWinkingLeft,
-          winkRight: eyeBlinkRight > 0.5 && eyeBlinkLeft < 0.25,
-          blinkBoth: eyeBlinkLeft > 0.55 && eyeBlinkRight > 0.55,
+          winkRight: eyeBlinkRight > 0.45 && eyeBlinkLeft < 0.25,
+          blinkBoth: eyeBlinkLeft > 0.5 && eyeBlinkRight > 0.5,
           sustainedWinkLeft: winkStartTime !== 0 && (now - winkStartTime > 2000),
           doubleEyebrowRaise: doubleRaiseTriggered,
         };

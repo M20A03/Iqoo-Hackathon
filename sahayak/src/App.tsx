@@ -77,9 +77,9 @@ function App() {
       console.warn("Storage warning:", e);
     }
 
-    // Execute Deep Links (Spotify, WhatsApp, YouTube, etc.)
-    if (result.type === 'ACTION') {
-      executeDeepLink(result.response);
+    // Direct execution of system/browser/app intents
+    if (result.type) {
+      executeDeepLink(result.type, result.command?.target, result.command?.text);
     }
   }, [ocrText, processVoiceCommand]);
 
@@ -123,10 +123,24 @@ function App() {
   }, []);
 
   const handleFaceGesture = useCallback((gesture: string) => {
-    if (gesture === 'SMILE') {
-      handleCommand('click focused');
-    } else if (gesture === 'BLINK_LEFT') {
+    if (gesture === 'OPEN_MOUTH') {
       handleCommand('scroll down');
+      window.scrollBy({ top: 400, behavior: 'smooth' });
+      document.documentElement.scrollBy({ top: 400, behavior: 'smooth' });
+      document.body.scrollBy({ top: 400, behavior: 'smooth' });
+    } else if (gesture === 'EYEBROWS_RAISED' || gesture === 'DOUBLE_EYEBROW_RAISE') {
+      handleCommand('scroll up');
+      window.scrollBy({ top: -400, behavior: 'smooth' });
+      document.documentElement.scrollBy({ top: -400, behavior: 'smooth' });
+      document.body.scrollBy({ top: -400, behavior: 'smooth' });
+    } else if (gesture === 'SMILE') {
+      handleCommand('click focused');
+    } else if (gesture === 'BLINK_LEFT' || gesture === 'SUSTAINED_WINK_LEFT') {
+      handleCommand('go back');
+      window.history.back();
+    } else if (gesture === 'BLINK_RIGHT') {
+      handleCommand('go home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [handleCommand]);
 
