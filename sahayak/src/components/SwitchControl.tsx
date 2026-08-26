@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ToggleRight, Bluetooth } from 'lucide-react';
+import { ToggleRight, Bluetooth, Play, Square } from 'lucide-react';
 
 interface SwitchControlProps {
   isActive: boolean;
@@ -7,10 +7,10 @@ interface SwitchControlProps {
 }
 
 const COMMANDS = [
-  { id: 0, label: 'Read Text', command: 'read text' },
+  { id: 0, label: 'Read Screen', command: 'read text' },
   { id: 1, label: 'Clear History', command: 'clear history' },
   { id: 2, label: 'What time is it?', command: 'what time is it' },
-  { id: 3, label: 'Help', command: 'help' }
+  { id: 3, label: 'Emergency Help', command: 'help' }
 ];
 
 export function SwitchControl({ isActive, onCommand }: SwitchControlProps) {
@@ -35,7 +35,7 @@ export function SwitchControl({ isActive, onCommand }: SwitchControlProps) {
     if (!isActive || !isScanning) return;
     
     if (e.code === 'Space' || e.code === 'Enter') {
-      e.preventDefault(); // Prevent page scroll
+      e.preventDefault();
       const selectedCommand = COMMANDS[activeItem].command;
       onCommand(selectedCommand);
     }
@@ -49,32 +49,40 @@ export function SwitchControl({ isActive, onCommand }: SwitchControlProps) {
   if (!isActive) return null;
 
   return (
-    <div className="flex flex-col gap-4 w-full bg-black border border-yellow-500 rounded-2xl p-6">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-bold flex items-center gap-2 text-yellow-400">
-          <ToggleRight className="text-yellow-400" />
-          Switch Control
-        </h2>
-        <div className="flex items-center gap-1 text-xs font-semibold text-yellow-400 bg-zinc-900 px-2 py-1 rounded-full border border-yellow-500/30">
-          <Bluetooth size={14} className={isScanning ? 'text-yellow-400' : 'text-zinc-600'} />
-          {isScanning ? 'Connected' : 'Disconnected'}
+    <div className="flex flex-col gap-4 w-full bg-white/90 border border-slate-200 shadow-sm rounded-3xl p-6 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+            <ToggleRight size={18} />
+          </div>
+          <div>
+            <h2 className="text-base font-black text-slate-900 font-display">
+              Motor Switch Control
+            </h2>
+            <p className="text-[10px] text-slate-400 font-mono">Single / Dual Switch Scanning</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200 text-[10px] font-bold">
+          <Bluetooth size={13} className={isScanning ? 'text-sky-600 animate-pulse' : 'text-slate-400'} />
+          <span>{isScanning ? 'Auto Scanning' : 'Standby'}</span>
         </div>
       </div>
 
-      <p className="text-sm text-yellow-300 font-medium">
-        Press <kbd className="bg-zinc-900 border border-yellow-500/50 px-1 rounded text-yellow-400">Space</kbd> or <kbd className="bg-zinc-900 border border-yellow-500/50 px-1 rounded text-yellow-400">Enter</kbd> (or external Bluetooth switch) to select the highlighted action.
+      <p className="text-xs text-slate-600 leading-relaxed">
+        Press <kbd className="bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded font-mono text-[11px] font-bold text-slate-800">Space</kbd> or <kbd className="bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded font-mono text-[11px] font-bold text-slate-800">Enter</kbd> (or external adaptive switch) when the target action is highlighted.
       </p>
 
-      {/* Real Commands Area showing Scanning */}
-      <div className="w-full bg-zinc-900 rounded-xl border border-yellow-500/30 p-4 mt-2 mb-2 shadow-inner">
-        <div className="grid grid-cols-2 gap-3">
+      {/* Interactive Command Scanning Matrix */}
+      <div className="w-full bg-slate-50 rounded-2xl border border-slate-200 p-3.5 shadow-inner">
+        <div className="grid grid-cols-2 gap-2.5">
           {COMMANDS.map(item => (
             <div 
               key={item.id}
-              className={`p-4 rounded-xl flex items-center justify-center text-sm font-bold transition-all border-2 ${
+              className={`p-4 rounded-xl flex items-center justify-center text-xs font-bold transition-all border ${
                 isScanning && activeItem === item.id 
-                  ? 'bg-yellow-400 text-black border-yellow-500 scale-105 shadow-md ring-2 ring-yellow-300 ring-offset-1' 
-                  : 'bg-black border-yellow-500/50 text-yellow-400/70'
+                  ? 'bg-indigo-600 text-white border-indigo-700 scale-[1.02] shadow-md ring-2 ring-indigo-300' 
+                  : 'bg-white border-slate-200 text-slate-700'
               }`}
             >
               {item.label}
@@ -83,26 +91,34 @@ export function SwitchControl({ isActive, onCommand }: SwitchControlProps) {
         </div>
       </div>
 
-      <div className="bg-zinc-900 p-4 rounded-xl flex flex-col gap-3 border border-yellow-500/30 text-sm mt-2">
-        <div className="flex justify-between items-center border-b border-yellow-500/20 pb-2">
-          <span className="text-yellow-500 font-medium">Scan Speed</span>
-          <span className="font-bold text-black bg-yellow-400 px-2 py-0.5 rounded">1.5s</span>
+      <div className="bg-slate-50/80 p-3.5 rounded-2xl flex flex-col gap-2 border border-slate-200 text-xs">
+        <div className="flex justify-between items-center border-b border-slate-200 pb-1.5">
+          <span className="text-slate-500 font-medium">Scan Dwell Speed</span>
+          <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">1.5s</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-yellow-500 font-medium">Switch Input</span>
-          <span className="font-bold text-yellow-300">Space / Enter</span>
+          <span className="text-slate-500 font-medium">Switch Trigger</span>
+          <span className="font-bold text-slate-800">Space / Enter / BT Pedal</span>
         </div>
       </div>
 
       <button
         onClick={() => setIsScanning(!isScanning)}
-        className={`w-full py-4 mt-4 rounded-xl font-bold text-lg shadow-sm transition-all border ${
+        className={`w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm ${
           isScanning 
-            ? 'bg-zinc-900 text-red-500 border-red-500 hover:bg-zinc-800'
-            : 'bg-yellow-400 text-black border-yellow-500 hover:bg-yellow-300'
+            ? 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+            : 'bg-slate-900 text-white hover:bg-slate-800'
         }`}
       >
-        {isScanning ? 'Stop Scanning' : 'Start Scanning'}
+        {isScanning ? (
+          <>
+            <Square size={14} /> Stop Scanning
+          </>
+        ) : (
+          <>
+            <Play size={14} /> Start Auto-Scan
+          </>
+        )}
       </button>
     </div>
   );

@@ -15,7 +15,7 @@ export function SavedItems({ refreshTrigger }: SavedItemsProps) {
 
   const loadItems = async () => {
     const data = await getAllItems();
-    setItems(data); // getAllItems already sorts desc
+    setItems(data);
   };
 
   const handleDelete = async (id?: number) => {
@@ -34,32 +34,40 @@ export function SavedItems({ refreshTrigger }: SavedItemsProps) {
   if (items.length === 0) return null;
 
   return (
-    <div className="mt-8 bg-black border border-yellow-500 p-6 rounded-2xl">
-      <div className="flex justify-between items-center mb-4 border-b border-yellow-500/20 pb-2">
-        <h2 className="text-xl font-bold flex items-center gap-2 text-yellow-400">
-           <Database className="text-yellow-400" size={24} />
-           Offline History
-        </h2>
-        <button onClick={handleClearAll} className="text-red-500 p-2 hover:bg-zinc-900 rounded-lg transition-colors" aria-label="Clear all history">
-          <ArchiveX size={20} />
+    <div className="bg-white/90 border border-slate-200 p-6 rounded-3xl shadow-sm backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-sky-50 text-sky-600 rounded-xl">
+            <Database size={18} />
+          </div>
+          <h2 className="text-base font-black text-slate-900 font-display">
+            Offline Command History
+          </h2>
+        </div>
+        <button 
+          onClick={handleClearAll} 
+          className="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors" 
+          title="Clear all history"
+        >
+          <ArchiveX size={16} />
         </button>
       </div>
       
-      <div className="flex flex-col gap-3 max-h-80 overflow-y-auto pr-2">
+      <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
         {items.map(item => (
-          <div key={item.id} className="bg-zinc-900/50 p-4 rounded-xl flex justify-between items-start gap-4 border border-yellow-500/20">
-            <div className="flex-1">
-              <span className="text-xs text-yellow-400 uppercase font-bold tracking-wider mb-1 block">
-                {item.type.replace('_', ' ')} • {new Date(item.timestamp).toLocaleTimeString()}
+          <div key={item.id} className="bg-slate-50/80 p-3.5 rounded-2xl flex justify-between items-start gap-3 border border-slate-200/80 shadow-xs">
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] text-sky-700 uppercase font-black tracking-wider mb-0.5 block">
+                {item.type.replace('_', ' ')} &bull; {new Date(item.timestamp).toLocaleTimeString()}
               </span>
-              <p className="text-sm text-yellow-300 font-semibold">{item.content}</p>
+              <p className="text-xs text-slate-800 font-medium leading-relaxed break-words">{item.content}</p>
             </div>
             <button
               onClick={() => handleDelete(item.id)}
-              className="p-3 text-yellow-600 hover:text-red-500 transition-colors bg-black border border-yellow-500/20 rounded-lg"
-              aria-label="Delete item"
+              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
+              title="Delete item"
             >
-              <Trash2 size={20} />
+              <Trash2 size={15} />
             </button>
           </div>
         ))}

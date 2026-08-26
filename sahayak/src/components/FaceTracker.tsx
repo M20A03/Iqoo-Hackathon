@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useFaceTracking, FaceGestures } from '../hooks/useFaceTracking';
+import { UserCheck, ShieldCheck } from 'lucide-react';
 
 interface FaceTrackerProps {
   onGesture: (gesture: string) => void;
@@ -51,13 +52,30 @@ export function FaceTracker({ onGesture, isActive }: FaceTrackerProps) {
   };
 
   return (
-    <div className="flex flex-col items-center p-5 bg-black shadow-sm rounded-2xl border border-yellow-500">
-      <h3 className="text-yellow-400 font-bold mb-3 flex items-center gap-2">
-        <span>👤</span> Face Tracker {isMockMode ? '(Simulator)' : 'Active'}
-      </h3>
+    <div className="flex flex-col items-center p-6 bg-white/90 border border-slate-200 shadow-sm rounded-3xl backdrop-blur-xl animate-in fade-in duration-300 w-full">
+      <div className="flex items-center justify-between w-full mb-4 pb-3 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-sky-50 text-sky-600 rounded-xl">
+            <UserCheck size={18} />
+          </div>
+          <div>
+            <h3 className="text-base font-black text-slate-900 font-display">
+              Face Gesture Tracker
+            </h3>
+            <p className="text-[10px] text-slate-400 font-mono">
+              {isMockMode ? 'Interactive Simulator' : 'MediaPipe Vision Active'}
+            </p>
+          </div>
+        </div>
+
+        <span className="flex items-center gap-1.5 px-2.5 py-1 bg-sky-50 text-sky-700 text-[10px] font-black uppercase tracking-wider rounded-full border border-sky-200">
+          <ShieldCheck size={12} />
+          {status}
+        </span>
+      </div>
       
       {!isMockMode ? (
-        <div className="relative w-48 h-48 rounded-full overflow-hidden border-4 border-yellow-400 shadow-md">
+        <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-sky-400 shadow-md my-2">
           <video 
             ref={videoRef}
             autoPlay 
@@ -66,30 +84,30 @@ export function FaceTracker({ onGesture, isActive }: FaceTrackerProps) {
           ></video>
         </div>
       ) : (
-        <div className="w-full bg-zinc-950 p-4 rounded-xl border border-yellow-500/20 text-center mb-2 flex flex-col gap-2">
-          <p className="text-xs text-yellow-500 font-bold">🖥️ WEB SCREEN SIMULATOR</p>
+        <div className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center mb-2 flex flex-col gap-2.5">
+          <p className="text-[10px] text-sky-800 font-black uppercase tracking-wider">Test Drive Gesture Triggers</p>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => triggerMockGesture('mouthOpen')}
-              className="py-3 bg-yellow-400 text-black font-bold rounded-lg text-xs"
+              className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
             >
               👄 Open Mouth
             </button>
             <button
               onClick={() => triggerMockGesture('smile')}
-              className="py-3 bg-yellow-400 text-black font-bold rounded-lg text-xs"
+              className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
             >
               😊 Smile
             </button>
             <button
               onClick={() => triggerMockGesture('winkLeft')}
-              className="py-3 bg-yellow-400 text-black font-bold rounded-lg text-xs"
+              className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
             >
               😉 Left Wink
             </button>
             <button
               onClick={() => triggerMockGesture('winkRight')}
-              className="py-3 bg-yellow-400 text-black font-bold rounded-lg text-xs"
+              className="py-3 bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 font-bold rounded-xl text-xs transition-all shadow-xs"
             >
               😉 Right Wink
             </button>
@@ -97,14 +115,28 @@ export function FaceTracker({ onGesture, isActive }: FaceTrackerProps) {
         </div>
       )}
 
-      <p className="mt-4 text-sm font-medium text-black bg-yellow-400 px-3 py-1 rounded-full">{status}</p>
-      
-      <div className="mt-4 text-xs font-medium text-yellow-300 text-center space-y-1 bg-zinc-900 p-3 rounded-xl border border-yellow-500/30 w-full">
-        <p>👄 <span className="text-yellow-400">Open Mouth</span> = Scroll Down</p>
-        <p>😊 <span className="text-yellow-400">Smile</span> = Click</p>
-        <p>🤨 <span className="text-yellow-400">Raise Eyebrows</span> = Right Click / Menu</p>
-        <p>😉 <span className="text-yellow-400">Left Wink</span> = Go Back</p>
-        <p>😉 <span className="text-yellow-400">Right Wink</span> = Go Home</p>
+      {/* Gesture Mapping Legend */}
+      <div className="mt-2 text-xs text-slate-600 space-y-1.5 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200 w-full font-medium">
+        <div className="flex justify-between items-center text-[11px]">
+          <span>👄 <b>Open Mouth</b></span>
+          <span className="text-slate-500 font-mono">Scroll Down</span>
+        </div>
+        <div className="flex justify-between items-center text-[11px]">
+          <span>😊 <b>Smile</b></span>
+          <span className="text-slate-500 font-mono">Simulate Click</span>
+        </div>
+        <div className="flex justify-between items-center text-[11px]">
+          <span>🤨 <b>Raise Eyebrows</b></span>
+          <span className="text-slate-500 font-mono">Right Click / Menu</span>
+        </div>
+        <div className="flex justify-between items-center text-[11px]">
+          <span>😉 <b>Left Wink</b></span>
+          <span className="text-slate-500 font-mono">Go Back</span>
+        </div>
+        <div className="flex justify-between items-center text-[11px]">
+          <span>😉 <b>Right Wink</b></span>
+          <span className="text-slate-500 font-mono">Home Screen</span>
+        </div>
       </div>
     </div>
   );
