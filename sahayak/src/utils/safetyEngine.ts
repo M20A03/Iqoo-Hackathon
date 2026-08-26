@@ -1,17 +1,19 @@
 // src/utils/safetyEngine.ts
-import { Medication, findMedication } from './drugDatabase';
+import { IndianDrugInfo, searchIndianDrugs } from './indianDrugsDatabase';
 import { getAllItems } from './storage';
 
 export interface SafetyCheckResult {
   isSafe: boolean;
-  medication: Medication | null;
+  medication: IndianDrugInfo | null;
   warning?: string;
   hindiWarning?: string;
   kannadaWarning?: string;
 }
 
 export async function checkMedicationSafety(ocrText: string): Promise<SafetyCheckResult> {
-  const med = findMedication(ocrText);
+  const matches = searchIndianDrugs(ocrText);
+  const med = matches.length > 0 ? matches[0] : null;
+
   if (!med) {
     return { isSafe: true, medication: null };
   }
@@ -24,30 +26,26 @@ export async function checkMedicationSafety(ocrText: string): Promise<SafetyChec
     .map(item => item.content.toLowerCase());
 
   // Check for duplicate dose
-  const alreadyTaken = recentMedNames.some(name => name.includes(med.name.toLowerCase()));
+  const alreadyTaken = recentMedNames.some(name => name.includes(med.brandName.toLowerCase()));
   if (alreadyTaken) {
     return {
       isSafe: false,
       medication: med,
-      warning: `Stop! You already scanned or took ${med.name} recently.`,
-      hindiWarning: `Rukye! Aapne ${med.name} abhi kuch der pehle li hai.`,
-      kannadaWarning: `ನಿಲ್ಲಿಸಿ! ನೀವು ಇತ್ತೀಚೆಗೆ ${med.name} ಅನ್ನು ತೆಗೆದುಕೊಂಡಿದ್ದೀರಿ.`
+      warning: `Stop! You already scanned or took ${med.brandName} recently.`,
+      hindiWarning: `रुकिए! आपने ${med.brandName} अभी कुछ देर पहले ली है।`,
+      kannadaWarning: `ನಿಲ್ಲಿಸಿ! ನೀವು ಇತ್ತೀಚೆಗೆ ${med.brandName} ಅನ್ನು ತೆಗೆದುಕೊಂಡಿದ್ದೀರಿ.`
     };
   }
 
   // Check for contraindications
-  for (const recentName of recentMedNames) {
-    for (const contraindicated of med.contraindications) {
-      if (recentName.includes(contraindicated)) {
-        return {
-          isSafe: false,
-          medication: med,
-          warning: `Danger! ${med.name} should not be taken with medications containing ${contraindicated}.`,
-          hindiWarning: `Khatra! ${med.name} ko ${contraindicated} ke saath nahi lena chahiye.`,
-          kannadaWarning: `ಅಪಾಯ! ${med.name} ಅನ್ನು ${contraindicated} ಹೊಂದಿರುವ ಔಷಧಿಗಳೊಂದಿಗೆ ತೆಗೆದುಕೊಳ್ಳಬಾರದು.`
-        };
-      }
-    }
+  if (med.contraindicationWarning) {
+    return {
+      isSafe: false,
+      medication: med,
+      warning: `Caution: ${med.contraindicationWarning}`,
+      hindiWarning: `सावधानी: ${med.contraindicationWarning}`,
+      kannadaWarning: `ಎಚ್ಚರಿಕೆ: ${med.contraindicationWarning}`
+    };
   }
 
   return { isSafe: true, medication: med };
