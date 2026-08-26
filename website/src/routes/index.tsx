@@ -6,6 +6,7 @@ import { Problem } from "@/components/sections/Problem";
 import { AppSection } from "@/components/sections/AppSection";
 import { OriginOSShowcase } from "@/components/sections/OriginOSShowcase";
 import { CaregiverHudSection } from "@/components/sections/CaregiverHudSection";
+import { IqooCommunitySection } from "@/components/sections/IqooCommunitySection";
 import { InteractiveSimulator } from "@/components/sections/InteractiveSimulator";
 import { HowItWorks } from "@/components/sections/HowItWorks";
 import { WhoItsFor } from "@/components/sections/WhoItsFor";
@@ -44,6 +45,7 @@ function Index() {
         <Problem />
         <AppSection />
         <OriginOSShowcase />
+        <IqooCommunitySection />
         <CaregiverHudSection />
         <InteractiveSimulator />
         <HowItWorks />

@@ -24,6 +24,7 @@ import { DiagnosticsComponent } from './components/DiagnosticsComponent';
 import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { HumanOnboardingWizard } from './components/HumanOnboardingWizard';
 import { EmergencySosModal } from './components/EmergencySosModal';
+import { IqooCommunityHub } from './components/IqooCommunityHub';
 import { SupportedLangCode } from './utils/languageDict';
 
 // Hooks
@@ -228,6 +229,11 @@ function App() {
       <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
         {/* Left Column: Primary Diagnostics / Input Engine (7/12) */}
         <div className="lg:col-span-7 flex flex-col gap-6">
+          {/* Mode 0: iQOO Monster & Lifestyle Hub */}
+          {currentMode === 'iqoo' && (
+            <IqooCommunityHub />
+          )}
+
           {/* Mode 1: Diagnostics Suite */}
           {currentMode === 'diagnostics' && (
             <DiagnosticsComponent />
