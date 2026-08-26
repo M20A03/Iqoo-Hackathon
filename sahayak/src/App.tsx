@@ -14,7 +14,7 @@ import { EyeTracking } from './components/EyeTracking';
 import { SwitchControl } from './components/SwitchControl';
 import { VoiceComponent } from './components/VoiceComponent';
 import { AIResponse as AIResponseView } from './components/AIResponse';
-import { SpotifyControls } from './components/SpotifyControls';
+import { UniversalAppLauncher } from './components/UniversalAppLauncher';
 import { AccessibilityServiceDemo } from './components/AccessibilityServiceDemo';
 import { SavedItems } from './components/SavedItems';
 import { InstallButton } from './components/InstallButton';
@@ -336,8 +336,8 @@ function App() {
             latestCommand={latestCommand} 
           />
 
-          {/* Spotify Playback Controls */}
-          <SpotifyControls />
+          {/* Universal Android Hands-Free App Control Hub */}
+          <UniversalAppLauncher />
 
           {/* Q&A Help Desk */}
           <HelpDesk user={user} onSignIn={() => setIsAuthOpen(true)} />
