@@ -27,12 +27,19 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
   const preprocessImage = (imageSrc: string | File): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
+      const objectUrl = typeof imageSrc === 'string' ? null : URL.createObjectURL(imageSrc);
       img.crossOrigin = 'anonymous';
+      
+      const cleanup = () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+      };
+
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          resolve(typeof imageSrc === 'string' ? imageSrc : URL.createObjectURL(imageSrc));
+          cleanup();
+          resolve(typeof imageSrc === 'string' ? imageSrc : '');
           return;
         }
 
@@ -53,9 +60,16 @@ export function OCRComponent({ onTextExtracted, speakText }: OCRComponentProps) 
         }
 
         ctx.putImageData(imgData, 0, 0);
+        cleanup();
         resolve(canvas.toDataURL('image/png'));
       };
-      img.src = typeof imageSrc === 'string' ? imageSrc : URL.createObjectURL(imageSrc);
+
+      img.onerror = () => {
+        cleanup();
+        resolve(typeof imageSrc === 'string' ? imageSrc : '');
+      };
+
+      img.src = objectUrl || (imageSrc as string);
     });
   };
 

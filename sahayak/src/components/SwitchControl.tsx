@@ -19,13 +19,15 @@ export function SwitchControl({ isActive, onCommand }: SwitchControlProps) {
 
   // Auto-scan items
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any = null;
     if (isActive && isScanning) {
       interval = setInterval(() => {
         setActiveItem(prev => (prev + 1) % COMMANDS.length);
       }, 1500);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isActive, isScanning]);
 
   // Handle Switch Press (Space or Enter)

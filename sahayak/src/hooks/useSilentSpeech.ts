@@ -5,6 +5,7 @@ export function useSilentSpeech(isActive: boolean, onTrigger: (type: string) => 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export function useSilentSpeech(isActive: boolean, onTrigger: (type: string) => 
   const startListening = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       analyserRef.current = audioContextRef.current.createAnalyser();
       sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
@@ -63,7 +65,13 @@ export function useSilentSpeech(isActive: boolean, onTrigger: (type: string) => 
 
   const stopListening = () => {
     sourceRef.current?.disconnect();
-    audioContextRef.current?.close();
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(() => {});
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
     setIsListening(false);
   };
 

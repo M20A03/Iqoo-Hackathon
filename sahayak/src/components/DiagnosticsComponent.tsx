@@ -30,6 +30,7 @@ export function DiagnosticsComponent() {
   const [ambientNoiseSnr, setAmbientNoiseSnr] = useState<number>(24); // SNR in dB (Good > 15dB)
   const audioCtxRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
+  const ppgIntervalRef = useRef<any>(null);
 
   // --- 2. Sclera & Conjunctiva State & Gray-World Lux Normalizer ---
   const [scleraMode, setScleraMode] = useState<'anemia' | 'jaundice' | 'healthy'>('anemia');
@@ -71,15 +72,11 @@ export function DiagnosticsComponent() {
 
   // Web Audio Synthesizer for Stethoscope sounds
   const toggleSoundSynthesis = () => {
-    if (isPlayingSound) {
-      if (oscillatorRef.current) {
-        try { oscillatorRef.current.stop(); } catch (e) {}
-        oscillatorRef.current = null;
+    if (isPlayingSound && audioCtxRef.current) {
+      if (audioCtxRef.current.state !== 'closed') {
+        audioCtxRef.current.close().catch(() => {});
       }
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close();
-        audioCtxRef.current = null;
-      }
+      audioCtxRef.current = null;
       setIsPlayingSound(false);
       return;
     }
@@ -131,22 +128,33 @@ export function DiagnosticsComponent() {
       if (oscillatorRef.current) {
         try { oscillatorRef.current.stop(); } catch (e) {}
       }
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close();
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+        audioCtxRef.current.close().catch(() => {});
+        audioCtxRef.current = null;
+      }
+      if (ppgIntervalRef.current) {
+        clearInterval(ppgIntervalRef.current);
+        ppgIntervalRef.current = null;
       }
     };
   }, [stethMode]);
 
   // PPG Scanner Simulation
   const startPpgScan = () => {
+    if (ppgIntervalRef.current) {
+      clearInterval(ppgIntervalRef.current);
+    }
     setIsScanningPpg(true);
     setPpgProgress(0);
     let p = 0;
-    const interval = setInterval(() => {
+    ppgIntervalRef.current = setInterval(() => {
       p += 10;
       setPpgProgress(p);
       if (p >= 100) {
-        clearInterval(interval);
+        if (ppgIntervalRef.current) {
+          clearInterval(ppgIntervalRef.current);
+          ppgIntervalRef.current = null;
+        }
         setIsScanningPpg(false);
         setBpm(Math.floor(72 + Math.random() * 8));
         setSpo2(Math.floor(97 + Math.random() * 2));

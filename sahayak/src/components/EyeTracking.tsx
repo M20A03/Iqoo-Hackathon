@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Eye, Focus, MousePointerClick, ShieldCheck } from 'lucide-react';
+import { Eye, ShieldCheck, Focus, MousePointerClick } from 'lucide-react';
 import { useFaceTracking } from '../hooks/useFaceTracking';
 
 interface EyeTrackingProps {
