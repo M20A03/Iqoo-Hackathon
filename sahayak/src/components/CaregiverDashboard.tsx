@@ -138,11 +138,11 @@ export function CaregiverDashboard() {
       </div>
 
       {/* Ingest Air-Gapped QR Code Bar */}
-      <div className="rounded-2xl bg-slate-900 p-4 text-white border border-slate-800 space-y-3">
+      <div className="rounded-2xl bg-slate-50 p-4 text-slate-900 border border-slate-200 space-y-3 shadow-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <QrCode className="h-4 w-4 text-cyan-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+            <QrCode className="h-4 w-4 text-sky-600" />
+            <span className="text-xs font-black uppercase tracking-wider text-slate-900">
               Ingest Patient Encrypted Offline QR Code
             </span>
           </div>
@@ -155,23 +155,23 @@ export function CaregiverDashboard() {
             value={qrPayloadInput}
             onChange={(e) => setQrPayloadInput(e.target.value)}
             placeholder="Paste patient Base64 QR code payload string..."
-            className="flex-1 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 font-mono"
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono shadow-xs"
           />
           <button
             onClick={handleDecodeQr}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 text-xs font-black text-white hover:from-sky-600 hover:to-cyan-600 transition-all shadow-md"
+            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-black text-white transition-all shadow-sm"
           >
             Decode Telemetry
           </button>
         </div>
 
         {qrParsedData && (
-          <div className="p-3 bg-slate-800/80 rounded-xl border border-cyan-500/40 text-xs space-y-1.5 font-mono text-cyan-200">
-            <div className="flex justify-between border-b border-slate-700 pb-1">
+          <div className="p-3 bg-white rounded-xl border border-sky-200 text-xs space-y-1.5 font-mono text-slate-800 shadow-xs">
+            <div className="flex justify-between border-b border-slate-100 pb-1">
               <span>Patient ID: <strong>{qrParsedData.recordId}</strong></span>
-              <span className="text-rose-400 font-bold">{qrParsedData.triageLevel}</span>
+              <span className="text-rose-600 font-bold">{qrParsedData.triageLevel}</span>
             </div>
-            <p className="text-[11px] text-slate-300">
+            <p className="text-[11px] text-slate-600">
               Acoustics: {qrParsedData.stethAcoustics?.mode} (SNR: {qrParsedData.stethAcoustics?.snrDb} dB) &bull; Sclera: {qrParsedData.opticalBiomarkers?.mode}
             </p>
           </div>

@@ -231,40 +231,40 @@ export function FamilyHealthVault() {
       </div>
 
       {/* Active Member Emergency Medical Card */}
-      <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-          <HeartPulse className="h-32 w-32 text-rose-500" />
+      <div className="p-5 rounded-3xl bg-gradient-to-br from-white via-slate-50 to-sky-50/50 text-slate-900 border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+          <HeartPulse className="h-36 w-36 text-rose-600" />
         </div>
 
-        <div className="relative z-10 space-y-3">
+        <div className="relative z-10 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-mono tracking-wider uppercase text-slate-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-black tracking-wider uppercase text-slate-600 font-mono">
                 OFFLINE EMERGENCY HEALTH PASSPORT
               </span>
             </div>
-            <span className="text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-mono font-bold bg-rose-50 text-rose-700 border border-rose-200 px-3 py-1 rounded-full shadow-xs">
               Blood: {activeMember.bloodGroup}
             </span>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
             <div>
-              <h3 className="text-2xl font-black font-display text-white">{activeMember.name}</h3>
-              <p className="text-xs text-slate-300">
+              <h3 className="text-2xl font-black font-display text-slate-900">{activeMember.name}</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
                 Age: {activeMember.age} yrs &bull; Gender: {activeMember.gender} &bull; Relation: {activeMember.relation}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs">
-                <span className="text-slate-400 text-[10px] block">Chronic Conditions</span>
-                <span className="font-bold text-amber-300">{activeMember.chronicConditions.join(', ')}</span>
+              <div className="bg-white px-3.5 py-2 rounded-2xl border border-slate-200 shadow-xs text-xs">
+                <span className="text-slate-500 text-[10px] font-bold block uppercase tracking-wider">Chronic Conditions</span>
+                <span className="font-bold text-amber-700">{activeMember.chronicConditions.join(', ')}</span>
               </div>
-              <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs">
-                <span className="text-slate-400 text-[10px] block">Allergies</span>
-                <span className="font-bold text-rose-300">{activeMember.allergies.join(', ')}</span>
+              <div className="bg-white px-3.5 py-2 rounded-2xl border border-slate-200 shadow-xs text-xs">
+                <span className="text-slate-500 text-[10px] font-bold block uppercase tracking-wider">Allergies</span>
+                <span className="font-bold text-rose-700">{activeMember.allergies.join(', ')}</span>
               </div>
             </div>
           </div>

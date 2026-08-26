@@ -104,29 +104,29 @@ export function IqooCommunityHub() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-white">
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1">
-              <p className="text-[10px] font-mono text-amber-400 uppercase">IN-GAME ADRENALINE PULSE</p>
-              <p className="text-3xl font-mono font-black text-white">{esportsPulse} <span className="text-xs text-amber-400">BPM</span></p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs text-center space-y-1">
+              <p className="text-[10px] font-mono text-amber-700 font-bold uppercase">IN-GAME ADRENALINE PULSE</p>
+              <p className="text-3xl font-mono font-black text-slate-900">{esportsPulse} <span className="text-xs text-amber-600">BPM</span></p>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
-                esportsPulse > 130 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                esportsPulse > 130 ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
               }`}>
                 {esportsPulse > 130 ? '🔥 High Adrenaline Clutch' : '⚡ Focused Baseline'}
               </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1">
-              <p className="text-[10px] font-mono text-cyan-400 uppercase">ANTI-JITTER AIM DAMPING</p>
-              <p className="text-3xl font-mono font-black text-cyan-300">{antiJitterActive ? '1000Hz' : 'OFF'}</p>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs text-center space-y-1">
+              <p className="text-[10px] font-mono text-sky-700 font-bold uppercase">ANTI-JITTER AIM DAMPING</p>
+              <p className="text-3xl font-mono font-black text-slate-900">{antiJitterActive ? '1000Hz' : 'OFF'}</p>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block bg-sky-50 text-sky-700 border border-sky-200">
                 Zero Finger-Tremor Jitter
               </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1">
-              <p className="text-[10px] font-mono text-emerald-400 uppercase">TILT STRESS INDEX</p>
-              <p className="text-3xl font-mono font-black text-emerald-300">{tiltStressIndex}%</p>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs text-center space-y-1">
+              <p className="text-[10px] font-mono text-emerald-700 font-bold uppercase">TILT STRESS INDEX</p>
+              <p className="text-3xl font-mono font-black text-slate-900">{tiltStressIndex}%</p>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block bg-emerald-50 text-emerald-700 border border-emerald-200">
                 Optimal Tilt Stability
               </span>
             </div>
