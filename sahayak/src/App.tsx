@@ -25,6 +25,9 @@ import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { HumanOnboardingWizard } from './components/HumanOnboardingWizard';
 import { EmergencySosModal } from './components/EmergencySosModal';
 import { IqooCommunityHub } from './components/IqooCommunityHub';
+import { FamilyHealthVault } from './components/FamilyHealthVault';
+import { SunoSahayakAssistant } from './components/SunoSahayakAssistant';
+import { FeatureDiscoveryTour } from './components/FeatureDiscoveryTour';
 import { SupportedLangCode } from './utils/languageDict';
 
 // Hooks
@@ -45,6 +48,7 @@ function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showEmergencySos, setShowEmergencySos] = useState(false);
+  const [showDiscoveryTour, setShowDiscoveryTour] = useState(false);
   const [appLanguage, setAppLanguage] = useState<SupportedLangCode>('hi');
   const [seniorMode, setSeniorMode] = useState(false);
   
@@ -145,6 +149,15 @@ function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Feature Discovery Tour */}
+          <button
+            onClick={() => setShowDiscoveryTour(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-full text-xs font-black border border-amber-200 transition-all shadow-sm"
+          >
+            <span>🧭</span>
+            <span>Explore All</span>
+          </button>
+
           {/* Emergency SOS Panic Button */}
           <button
             onClick={() => setShowEmergencySos(true)}
@@ -178,28 +191,22 @@ function App() {
           {user ? (
             <div className="flex items-center gap-2 bg-slate-100 p-1.5 pr-3 rounded-full border border-slate-200">
               {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || 'Profile'} className="w-7 h-7 rounded-full border border-sky-500" />
+                <img src={user.photoURL} alt={user.displayName || 'User'} className="w-6 h-6 rounded-full" />
               ) : (
-                <div className="w-7 h-7 bg-sky-100 rounded-full flex items-center justify-center">
-                  <UserIcon className="text-sky-600" size={14} />
-                </div>
+                <UserIcon size={16} className="text-slate-600 ml-1" />
               )}
-              <span className="text-xs font-black text-slate-900 truncate max-w-[80px]">{user.displayName || 'User'}</span>
-              <button 
-                onClick={() => signOut(auth)}
-                className="p-1 text-rose-500 hover:text-rose-700"
-                aria-label="Sign Out"
-              >
+              <span className="text-xs font-bold text-slate-700">{user.displayName ? user.displayName.split(' ')[0] : 'User'}</span>
+              <button onClick={() => signOut(auth)} className="text-slate-400 hover:text-rose-500 ml-1">
                 <LogOut size={14} />
               </button>
             </div>
           ) : (
-            <button 
+            <button
               onClick={() => setIsAuthOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-xs font-black shadow active:scale-95 transition-all"
+              className="flex items-center gap-1.5 bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-slate-800 transition-all shadow-sm"
             >
-              <LogIn className="w-3.5 h-3.5" />
-              Sign In
+              <LogIn size={14} />
+              <span>Login</span>
             </button>
           )}
         </div>
@@ -207,7 +214,7 @@ function App() {
 
       {/* Auth Modal Overlay */}
       {isAuthOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="relative w-full max-w-md">
             <button 
               onClick={() => setIsAuthOpen(false)}
@@ -246,7 +253,17 @@ function App() {
             </div>
           )}
 
-          {/* Mode 3: Voice Command Input */}
+          {/* Mode 3: Family Health Vault */}
+          {currentMode === 'vault' && (
+            <FamilyHealthVault />
+          )}
+
+          {/* Mode 4: Suno Sahayak Multilingual Voice Assistant */}
+          {currentMode === 'assistant' && (
+            <SunoSahayakAssistant />
+          )}
+
+          {/* Mode 5: Voice Command Input */}
           {(currentMode === 'voice' || currentMode === 'hybrid') && (
             <VoiceComponent onCommandParsed={handleCommand} />
           )}
@@ -342,6 +359,17 @@ function App() {
            {isDemoMode ? '📡 Doctor Station ON' : '📡 Doctor Station OFF'}
          </button>
       </div>
+
+      {/* Interactive Feature Discovery Tour Modal */}
+      {showDiscoveryTour && (
+        <FeatureDiscoveryTour
+          onSelectFeature={(mode) => {
+            setCurrentMode(mode);
+            setShowDiscoveryTour(false);
+          }}
+          onClose={() => setShowDiscoveryTour(false)}
+        />
+      )}
 
       {/* Human Onboarding Guided Wizard Modal */}
       {showOnboarding && (
